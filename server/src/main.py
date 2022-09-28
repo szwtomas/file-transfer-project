@@ -1,6 +1,6 @@
-from server import Server
+from server import TCPServer
 from constants import PORT
 
 if __name__ == "__main__":
-    server = Server(PORT)
+    server = TCPServer(PORT)
     server.start()
