@@ -3,7 +3,7 @@ from pickletools import bytes1
 from Metadata import Metadata
 
 class MetadataParser:
-    
+
     # Receives bytes with the following headers:
     # 1 byte: is_download (0 means download, 1 means upload)
     # 1 byte: file_name length in bytes (filename cant be longer than 255 bytes)
@@ -12,11 +12,14 @@ class MetadataParser:
     # 1 byte: path length in bytes (path cant be longer than 255 bytes)
     # path: the path of the file, of length path_length
     def parse(self, data) -> Metadata:
-        is_download = self.parse_is_download(data)
-        file_name = self.parse_file_name(data)
-        file_size = self.parse_file_size(data)
-        path = self.parse_path(data)
-        return Metadata(is_download, file_name, file_size, path)
+        try:
+            is_download = self.parse_is_download(data)
+            file_name = self.parse_file_name(data)
+            file_size = self.parse_file_size(data) 
+            path = self.parse_path(data)
+            return Metadata(is_download, file_name, file_size, path)
+        except Exception as e:
+            raise Exception("Error parsing metadata: " + str(e))
 
     def parse_is_download(self, data) -> bool:
         return data[0] == 0
@@ -24,10 +27,14 @@ class MetadataParser:
     def parse_file_name(self, data) -> str:
         file_name_length = data[1]
         file_name = data[2:2 + file_name_length]
+        if len(file_name) == 0:
+            raise Exception("File name is empty")
         return file_name.decode("utf-8")
 
     def parse_file_size(self, data) -> int:
         file_size = data[2 + data[1]:6 + data[1]]
+        if len(file_size) == 0:
+            raise Exception("File size is empty")
         return int.from_bytes(file_size, byteorder="big")
 
     def parse_path(self, data) -> str:
