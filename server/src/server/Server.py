@@ -61,7 +61,7 @@ class Server:
 
         file_path = metadata.get_path()
         file_size = fs_utils.get_file_size(file_path)
-                
+
         data += file_size.to_bytes(FILE_SIZE_BYTES, byteorder="big")
 
         data += CHUNK_SIZE.to_bytes(CHUNK_MESSAGE_SIZE_BYTES, byteorder="big")
@@ -87,4 +87,3 @@ class Server:
         '''
         #shutil.disk_usage(path) may be useful to check the available space
         return True
-

@@ -12,3 +12,10 @@ class TCPSocket(Socket):
 
     def accept(self) -> tuple:
         return self.socket.accept()
+
+    def read_data(self):
+        return self.socket.recv(1024) #FIXME: this size may be wrong
+
+    def send_data(self, data):
+        self.socket.send(data)
+    
