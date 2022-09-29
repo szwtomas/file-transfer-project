@@ -1,3 +1,5 @@
+from curses import meta
+import os
 from stat import FILE_ATTRIBUTE_ARCHIVE
 from protocol.MetadataParser import MetadataParser
 from protocol.FileSender import FileSender
@@ -28,7 +30,7 @@ class Server:
                 print(str(e))
                 continue
 
-            self.send_headers_to_client(socket, metadata)
+            self.send_response_to_client(socket, metadata)
 
             if metadata.is_download():    
                 self.send_file_to_client(socket, metadata)
@@ -42,20 +44,20 @@ class Server:
     def receive_file_from_client(self, socket, metadata):
         self.file_receiver.receive_file(socket, metadata)
 
-    def send_headers_to_client(self, socket, metadata):
+    def send_response_to_client(self, socket, metadata):
         if metadata.is_download():
-            headers_data = self.get_download_response_bytes(socket, metadata)
+            data = self.get_download_response_bytes(socket, metadata)
         else:
-            headers_data = b""
-            pass #Implement for upload
+            data = b""
+            data = self.get_upload_response_bytes(socket, metadata)
 
-
-        socket.send_data(headers_data)
+        socket.send_data(data)
 
     def get_download_response_bytes(self, socket, metadata):
         data = b""
         # 0 means OK. 1 means error
         data += bytes(0) if fs_utils.path_exists(metadata.get_path()) else bytes(1)
+        # TODO: if error, should we return here?
 
         file_path = metadata.get_path()
         file_size = fs_utils.get_file_size(file_path)
@@ -64,4 +66,25 @@ class Server:
 
         data += CHUNK_SIZE.to_bytes(CHUNK_MESSAGE_SIZE_BYTES, byteorder="big")
 
+        with open(fs_utils.get_full_path(file_path), "rb") as f:
+            while file_size > 0:
+                msg_size = min(CHUNK_SIZE, file_size)
+                chunk_data = f.read(msg_size)
+                data += chunk_data
+                file_size -= len(chunk_data)
         return data
+
+    def get_upload_response_bytes(self, socket, metadata):
+        data = b""
+        # 0 means OK. 1 means error
+        data += bytes(0) if self.check_space_available(metadata.get_file_size()) else bytes(1)
+        return data
+
+    # FIXME: do we need this?
+    def check_space_available(self, file_size):
+        '''
+        Returns true if there is enough space available to store the file.
+        '''
+        #shutil.disk_usage(path) may be useful to check the available space
+        return True
+

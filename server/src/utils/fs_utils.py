@@ -6,3 +6,7 @@ def path_exists(path) -> bool:
 
 def get_file_size(path) -> int:
     return os.path.getsize(os.path.join(os.path.dirname(__file__), "../../fs_root", path))
+
+def get_full_path(path):
+    return os.path.join(os.path.dirname(__file__), "../../fs_root", path)
+    

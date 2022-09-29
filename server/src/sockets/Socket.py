@@ -4,7 +4,10 @@ from socket import socket
 class Socket:
 
     def accept(self) -> tuple:
-        return self.socket.accept()
+        pass
 
     def read_data(self):
+        pass
+
+    def send_data(self, data):
         pass

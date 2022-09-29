@@ -12,7 +12,7 @@ class MetadataParser:
         try:
             is_download = self.parse_is_download(data) 
             path = self.parse_path(data)
-            return Metadata(is_download, path, 0 if not is_download else self.parse_file_size(data))
+            return Metadata(is_download, path, 0 if is_download else self.parse_file_size(data))
         except Exception as e:
             raise Exception("Error parsing metadata: " + str(e))
 
