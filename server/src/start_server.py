@@ -1,4 +1,4 @@
-from server import TCPServer
+from server.TCPServer import TCPServer
 from constants import PORT
 
 if __name__ == "__main__":

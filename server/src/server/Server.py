@@ -1,6 +1,6 @@
-from MetadataParser import MetadataParser
-from FileSender import FileSender
-from FileReceiver import FileReceiver
+from protocol.MetadataParser import MetadataParser
+from protocol.FileSender import FileSender
+from protocol.FileReceiver import FileReceiver
 
 class Server:
 
