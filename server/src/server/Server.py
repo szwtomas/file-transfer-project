@@ -21,16 +21,13 @@ class Server:
             data = socket.read_data()
             metadata = self.metadata_parser.parse(data)
             if metadata.is_download():
-                self.download_file(socket, metadata)
+                self.send_file_to_client(socket, metadata)
             else:
-                self.upload_file(socket, metadata)
+                self.receive_file_from_client(socket, metadata)
 
-    def get_connection(self):
-        # Implemented by each subclass
-        pass
 
-    def send_file_to_client(self): 
-        self.file_sender.send_file()
+    def send_file_to_client(self, socket, metadata): 
+        self.file_sender.send_file(socket, metadata)
 
-    def receive_file_from_client(self):
-        self.file_receiver.receive_file()
+    def receive_file_from_client(self, socket, metadata):
+        self.file_receiver.receive_file(socket, metadata)
