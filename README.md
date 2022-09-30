@@ -10,3 +10,16 @@ Client first Message:
 - path_size: 1 byte indicating the path's size in bytes
 - path of size path_size
 - if operation is upload, size of the file (max 4gb)
+
+Server first response Message:
+- Response to Download Request:
+    - status: 1 byte indicating if there was an error with the request (0 indicating OK, 1 indicating Error)
+    - file_size: 4 bytes indicating the file size
+
+- Response to Upload Request:
+    - status: 1 byte indicating if there was an error with the request (0 indicating OK, 1 indicating Error)
+
+Data messages:
+- 4 bytes: Offset of the chunk
+- 4 bytes: size of the chunk
+- chunk_size bytes: payload

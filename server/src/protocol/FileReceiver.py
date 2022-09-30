@@ -1,7 +1,7 @@
 from utils import fs_utils
-class FileUploader():
+class FileReceiver():
 
-    def receive_file(socket, metadata):
+    def receive_file(self, socket, metadata):
         '''
         Receives the file from the client, and saves it to the server.
         The headers are:
@@ -19,3 +19,4 @@ class FileUploader():
                 bytes_to_read = socket.read_data(4)
                 data = socket.read_data(bytes_to_read)
                 f.write(data)
+                bytes_read += len(data)

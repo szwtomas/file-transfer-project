@@ -54,30 +54,33 @@ class Server:
         socket.send_data(data)
 
     def get_download_response_bytes(self, socket, metadata):
+        '''
+        Returns a byte array with the following headers:
+        1 byte: 0 if file exists, 1 if file does not exist
+        4 bytes: file size (only if file exists)
+        '''
         data = b""
-        # 0 means OK. 1 means error
-        data += bytes(0) if fs_utils.path_exists(metadata.get_path()
-                                                 ) else bytes(1)
-        # TODO: if error, should we return here?
-
         file_path = metadata.get_path()
+
+        # 0 means OK. 1 means error
+        if fs_utils.path_exists(file_path):
+            data += bytes(0) # OK
+        else:
+            data += bytes(1) # ERROR
+            return data
+        
         file_size = fs_utils.get_file_size(file_path)
 
         data += file_size.to_bytes(FILE_SIZE_BYTES, byteorder="big")
 
-        data += CHUNK_SIZE.to_bytes(CHUNK_MESSAGE_SIZE_BYTES, byteorder="big")
-
-        with open(fs_utils.get_full_path(file_path), "rb") as f:
-            while file_size > 0:
-                msg_size = min(CHUNK_SIZE, file_size)
-                chunk_data = f.read(msg_size)
-                data += chunk_data
-                file_size -= len(chunk_data)
         return data
 
     def get_upload_response_bytes(self, socket, metadata):
+        '''
+        Returns a byte array with the following headers:
+        1 byte: 0 if enough space available, 1 if not enough space available
+        '''
         data = b""
-        # 0 means OK. 1 means error
         data += bytes(0) if self.check_space_available(
             metadata.get_file_size()) else bytes(1)
         return data

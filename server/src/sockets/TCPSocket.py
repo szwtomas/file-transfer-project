@@ -13,9 +13,8 @@ class TCPSocket(Socket):
     def accept(self) -> tuple:
         return self.socket.accept()
 
-    def read_data(self):
-        return self.socket.recv(CHUNK_SIZE)
+    def read_data(self, bytes_to_read: int) -> bytes: #FIXME: should we use CHUNK_SIZE?
+        return self.socket.recv(bytes_to_read)
 
     def send_data(self, data):
         self.socket.send(data)
-    

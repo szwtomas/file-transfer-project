@@ -7,7 +7,7 @@ class MetadataParser:
     # Receives bytes with the following headers:
     # 1 byte: is_download (0 means download, 1 means upload)
     # 1 byte: path length in bytes (path cant be longer than 255 bytes)
-    # path: the path of the file, of length path_length\
+    # path: the path of the file, of length path_length
     # 4 bytes: file size (only for uploads)
 
     def parse(self, data) -> Metadata:

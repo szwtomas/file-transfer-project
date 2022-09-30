@@ -11,5 +11,3 @@ class TCPServer(Server):
                         
     def get_connection(self):
         return self.socket.accept()
-
-        
