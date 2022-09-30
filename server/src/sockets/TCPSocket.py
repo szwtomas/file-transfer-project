@@ -1,4 +1,4 @@
-from constants import LOCALHOST, PORT, SOCKET_MAX_QUEUE
+from constants import CHUNK_SIZE, LOCALHOST, PORT, SOCKET_MAX_QUEUE
 from socket import socket, AF_INET, SOCK_STREAM
 from Socket import Socket
 
@@ -14,7 +14,7 @@ class TCPSocket(Socket):
         return self.socket.accept()
 
     def read_data(self):
-        return self.socket.recv(1024) #FIXME: this size may be wrong
+        return self.socket.recv(CHUNK_SIZE)
 
     def send_data(self, data):
         self.socket.send(data)

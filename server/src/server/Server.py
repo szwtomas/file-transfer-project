@@ -7,6 +7,7 @@ from protocol.FileReceiver import FileReceiver
 from server.src.constants import CHUNK_MESSAGE_SIZE_BYTES, CHUNK_SIZE, FILE_SIZE_BYTES
 import utils.fs_utils as fs_utils
 
+
 class Server:
 
     def __init__(self, port):
@@ -32,13 +33,12 @@ class Server:
 
             self.send_response_to_client(socket, metadata)
 
-            if metadata.is_download():    
+            if metadata.is_download():
                 self.send_file_to_client(socket, metadata)
             else:
                 self.receive_file_from_client(socket, metadata)
 
-
-    def send_file_to_client(self, socket, metadata): 
+    def send_file_to_client(self, socket, metadata):
         self.file_sender.send_file(socket, metadata)
 
     def receive_file_from_client(self, socket, metadata):
@@ -56,7 +56,8 @@ class Server:
     def get_download_response_bytes(self, socket, metadata):
         data = b""
         # 0 means OK. 1 means error
-        data += bytes(0) if fs_utils.path_exists(metadata.get_path()) else bytes(1)
+        data += bytes(0) if fs_utils.path_exists(metadata.get_path()
+                                                 ) else bytes(1)
         # TODO: if error, should we return here?
 
         file_path = metadata.get_path()
@@ -77,7 +78,8 @@ class Server:
     def get_upload_response_bytes(self, socket, metadata):
         data = b""
         # 0 means OK. 1 means error
-        data += bytes(0) if self.check_space_available(metadata.get_file_size()) else bytes(1)
+        data += bytes(0) if self.check_space_available(
+            metadata.get_file_size()) else bytes(1)
         return data
 
     # FIXME: do we need this?
@@ -85,5 +87,5 @@ class Server:
         '''
         Returns true if there is enough space available to store the file.
         '''
-        #shutil.disk_usage(path) may be useful to check the available space
+        # shutil.disk_usage(path) may be useful to check the available space
         return True
