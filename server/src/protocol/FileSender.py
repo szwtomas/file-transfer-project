@@ -1,4 +1,4 @@
-from server.src.constants import CHUNK_SIZE
+from server.src.constants import CHUNK_SIZE, FILE_SIZE_BYTES
 from utils import fs_utils
 
 class FileSender:
@@ -18,8 +18,8 @@ class FileSender:
             bytes_read = 0
             while bytes_read < file_size:
                 bytes_to_read = min(file_size - bytes_read, CHUNK_SIZE)
-                data += bytes_read # Offset
-                data += bytes_to_read # Size of the chunk
+                data += bytes_read.to_bytes(FILE_SIZE_BYTES, byteorder="big") # Offset
+                data += bytes_to_read.to_bytes(FILE_SIZE_BYTES, byteorder="big") # Size of the chunk
                 data += f.read(bytes_to_read)
                 socket.send_data(data)
                 bytes_read += bytes_to_read
