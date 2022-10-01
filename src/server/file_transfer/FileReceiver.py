@@ -21,16 +21,17 @@ class FileReceiver:
         self.validator.verify_valid_file_size(socket, metadata.get_file_size())
         self.send_ack_message(socket)
 
-        path = metadata.get_path()
+        path = f"{self.fs_root}/{metadata.get_path()}"
+        print("PATH: {path}")
         file_size = metadata.get_file_size()
 
         try:
             with open(path, "wb") as file:
                 print(f"About to receive file: {path}")
                 while file_size > 0:
-                    _ = int.from_bytes(self.socket.recv(4), byteorder="big") # we don't need the offset in TCP
-                    chunk_size = int.from_bytes(self.socket.recv(4), byteorder="big")
-                    chunk = self.socket.recv(chunk_size)
+                    _ = int.from_bytes(socket.read_data(4), byteorder="big") # we don't need the offset in TCP
+                    chunk_size = int.from_bytes(socket.read_data(4), byteorder="big")
+                    chunk = socket.read_data(chunk_size)
                     print(f"Received chunk: {chunk}")
                     file.write(chunk)
                     file_size -= CHUNK_SIZE
@@ -39,7 +40,7 @@ class FileReceiver:
             print(f"Exception receiving file: {e}")
 
     
-    def send_ack_message(socket):
+    def send_ack_message(self, socket):
         ack_message_btyes = b"\x00"
         print(f"Sending ack message: {ack_message_btyes}")
         socket.send_data(ack_message_btyes)
