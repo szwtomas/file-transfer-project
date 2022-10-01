@@ -35,7 +35,7 @@ class Acceptor(threading.Thread):
                     continue
                 tcp_socket = TCPSocket(client_socket)
                 self.connections[client_address] = TCPConnection(tcp_socket, self.fs_root)
-                self.connections[client_address].handle_connection()
+                self.connections[client_address].start()
         except Exception as e:
             print(f"Error: {e}")
         

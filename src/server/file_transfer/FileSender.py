@@ -2,9 +2,7 @@ import os
 from exceptions import FileDoesNotExistException, FileSizeNotSupportedException
 from sockets import TCPSocket
 from metadata import Metadata
-
-MAX_FILE_SIZE_SUPPORTED_IN_BYTES = 2 ** 32 # 4GB
-CHUNK_SIZE = 1024
+from constants import CHUNK_SIZE, MAX_FILE_SIZE_SUPPORTED_IN_BYTES 
 
 class FileSender:
 

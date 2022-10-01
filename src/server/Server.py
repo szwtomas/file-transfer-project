@@ -11,8 +11,6 @@ class Server:
 
     def run(self):
         print("Running server...")
-            
-        # We can optionally accept host and port as command line parameters in the future
         self.acceptor = Acceptor(self.host, self.port, self.fs_root)
         self.acceptor.start()
         while True:

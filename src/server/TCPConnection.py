@@ -14,6 +14,9 @@ class TCPConnection(threading.Thread):
         self.file_receiver = FileReceiver()
         
 
+    def run(self):
+        self.handle_connection()
+
     def handle_connection(self):
         try:
             data = self.socket.read_data()
