@@ -24,7 +24,6 @@ class TCPConnection(threading.Thread):
             self.transfer_file(metadata)
         except Exception as e:
             # TODO: Add error handling
-
             print(f"Error in handle_connection: {e}  ")
 
 
