@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 .vscode/
+.idea/
 
 # C extensions
 *.so
@@ -16,3 +17,6 @@ develop-eggs/
 dist/
 
 desktop.ini
+
+# The files used locally for testing should not be pushed into the repository
+fs_root/

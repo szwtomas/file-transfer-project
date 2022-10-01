@@ -1,0 +1,4 @@
+LOCALHOST = "127.0.0.1"
+LISTEN_PORT = 7878
+
+FS_ROOT = "../../fs_root"

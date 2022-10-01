@@ -10,3 +10,6 @@ def get_file_size(path) -> int:
 def get_full_path(path):
     return os.path.join(os.path.dirname(__file__), "../../fs_root", path)
     
+def save_file_in_path(data, file_name, path):
+    with open(path) as f:
+        f.write(data)

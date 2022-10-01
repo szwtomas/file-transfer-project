@@ -1,5 +1,4 @@
 from socket import socket, AF_INET, SOCK_STREAM
-from server.src.sockets.TCPSocket import TCPSocket
 from constants import PATH_SIZE_BYTES, SERVER_PORT, CHUNK_SIZE_BYTES, CHUNK_OFFSET_BYTES
 
 
