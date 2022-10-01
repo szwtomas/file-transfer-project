@@ -4,17 +4,20 @@ Assumptions:
 
 - Files to upload and download can not be larger than 4gb
 
+Handshake:
+
+
 Client first Message:
 
 - operation: 1 byte indicating if the operation is download or upload (0 for download, other for upload)
 - path_size: 1 byte indicating the path's size in bytes
 - path of size path_size
-- if operation is upload, size of the file (max 4gb)
+- file_size: 4 bytes indicating size of the file (if operation is upload)
 
 Server first response Message:
 - Response to Download Request:
     - status: 1 byte indicating if there was an error with the request (0 indicating OK, 1 indicating Error)
-    - file_size: 4 bytes indicating the file size
+    - file_size: 4 bytes indicating the file size (only if status == OK)
 
 - Response to Upload Request:
     - status: 1 byte indicating if there was an error with the request (0 indicating OK, 1 indicating Error)
