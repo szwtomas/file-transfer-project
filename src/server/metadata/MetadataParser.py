@@ -11,6 +11,7 @@ class MetadataParser:
         4 bytes: file size (only for uploads)
         '''
         try:
+            print("Data: ", data[0])
             is_download = self.parse_is_download(data) 
             path = self.parse_path(data)
             return Metadata(is_download, path, 0 if is_download else self.parse_file_size(data))

@@ -5,7 +5,9 @@ from metadata import Metadata
 from constants import CHUNK_SIZE, MAX_FILE_SIZE_SUPPORTED_IN_BYTES 
 
 class FileSender:
-
+    def __init__(self, fs_root):
+        self.fs_root = fs_root
+        
     def send_file(self, socket: TCPSocket, metadata: Metadata):
         '''
         Sends file to client
@@ -18,26 +20,34 @@ class FileSender:
         - 4 bytes: Payload size in bytes
         - payload
         '''
-        file_path = os.path.join(self.fs_root, metadata.path)
-        self.verify_valid_path(socket, file_path)        
+        file_path = os.path.join(self.fs_root, metadata.get_path())
+        self.verify_valid_path(socket, file_path)
         file_size = os.path.getsize(file_path)
-        self.verify_valid_file_size(socket, file_size)
-        
+        self.verify_file_size(socket, file_size)
+        self.send_ack_message(socket, file_size)
         try:
             offset = 0
             with open(file_path, "rb") as file:
+                print(f"Sending file {file_path} to client")
                 chunk_data = file.read(CHUNK_SIZE)
-                while chunk_data is not None:
+                print(f"Entering while loop, {chunk_data}, len: {len(chunk_data)}")
+                while chunk_data:
                     message_bytes = self.build_payload_message(offset, chunk_data)
+                    print(f"Sending message bytes: {message_bytes}")
                     socket.send_data(message_bytes)
+                    print(f"Sent message bytes: {message_bytes}")
                     offset += len(chunk_data)
+                    print(f"Offset: {offset}")
                     chunk_data = file.read(CHUNK_SIZE)
+                    print(f"Chunk data: {chunk_data}")
+                    
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error in send_file: {e}")
 
 
     def build_payload_message(self, offset: int, payload: bytes) -> bytes:
+        print(f"Building payload message, offset: {offset}, payload: {payload}, len: {len(payload)}")
         data = b""
         data += offset.to_bytes(4, "big")
         data += len(payload).to_bytes(4, "big")
@@ -45,13 +55,14 @@ class FileSender:
         return data
 
 
-    def send_ack_message(socket, file_size: int):
+    def send_ack_message(self, socket, file_size: int):
         '''
         Sends an ack message to the client, with the following headers:
         1 byte: 0x0
         4 bytes: file size
         '''
         ack_message_btyes = b"\x00" + file_size.to_bytes(4, "big")
+        print(f"Sending ack message: {ack_message_btyes}")
         socket.send_data(ack_message_btyes)
         
 

@@ -10,7 +10,7 @@ class TCPConnection(threading.Thread):
         self.socket = socket
         self.fs_root = fs_root
         self.metadata_parser = MetadataParser()
-        self.file_sender = FileSender()
+        self.file_sender = FileSender(fs_root)
         self.file_receiver = FileReceiver()
         
 
@@ -24,17 +24,19 @@ class TCPConnection(threading.Thread):
             self.transfer_file(metadata)
         except Exception as e:
             # TODO: Add error handling
-            print(f"Error: {e}")
+
+            print(f"Error in handle_connection: {e}  ")
 
 
     def transfer_file(self, metadata):
         try:
-            if metadata.is_download:
-                self.file_sender.send_file(self.socket, self.fs_root, metadata.path)
+            if metadata.get_is_download():
+                self.file_sender.send_file(self.socket, metadata)
             else:
-                self.file_receiver.receive_file(self.socket, self.fs_root, metadata.path, metadata.file_size)
+                self.file_receiver.receive_file(self.socket, self.fs_root, metadata, metadata.file_size)
         except Exception as e:
-            print(f"Exception: {e}")
+            print(f"Exception in transfer_file: {e}")
+
 
     
     def stop_running(self):

@@ -1,7 +1,7 @@
 import os
 from socket import socket, AF_INET, SOCK_STREAM
 from constants import DOWNLOAD, FILE_SIZE_BYTES, PATH_SIZE_BYTES, RESPONSE_STATUS_BYTES, SERVER_PORT, CHUNK_SIZE_BYTES, CHUNK_OFFSET_BYTES, UPLOAD
-from utils.constants import CHUNK_SIZE
+from constants import CHUNK_SIZE
 
 class TCPClient:
     def __init__(self):
@@ -13,7 +13,9 @@ class TCPClient:
 
         response = self.socket.recv(RESPONSE_STATUS_BYTES)
         if response[0] == 0:
+            print("Download confirmed")
             file_size = int.from_bytes(self.socket.recv(FILE_SIZE_BYTES), byteorder="big")
+            print("File size: ", file_size)
         else:
             print("Error in download response")
             return
@@ -23,6 +25,7 @@ class TCPClient:
                 offset = int.from_bytes(self.socket.recv(CHUNK_OFFSET_BYTES), byteorder="big")
                 chunk_size = int.from_bytes(self.socket.recv(CHUNK_SIZE_BYTES), byteorder="big")
                 chunk = self.socket.recv(chunk_size)
+                print(f"Received chunk: {chunk}")
                 file.write(chunk)
                 file_size -= CHUNK_SIZE
 
@@ -50,16 +53,17 @@ class TCPClient:
             print("Error in upload response")
             return
 
-    def get_request(self, path, type):
+    def get_request(self, path, operation):
         #Client First Message
         message = b""
         #operation
-        message += bytes(type)
+        message += operation.to_bytes(1, byteorder="big")
         #path size
         message += len(path).to_bytes(PATH_SIZE_BYTES, byteorder="big")
         #path
         message += path.encode("UTF-8")
         #file size
-        if type == UPLOAD:
+        if operation == UPLOAD:
             message += os.path.getsize(path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
+        print("sending message: ", message)
         return message

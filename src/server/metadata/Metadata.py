@@ -5,7 +5,7 @@ class Metadata:
         self.file_size = file_size
         self.path = path
 
-    def is_download(self) -> bool:
+    def get_is_download(self) -> bool:
         return self.is_download
 
     def get_file_size(self) -> int:
