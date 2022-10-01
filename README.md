@@ -29,3 +29,6 @@ Data messages:
 - 4 bytes: Offset of the chunk
 - 4 bytes: size of the chunk
 - chunk_size bytes: payload
+
+ACK:
+- 4 bytes indicating total of bytes received overall
