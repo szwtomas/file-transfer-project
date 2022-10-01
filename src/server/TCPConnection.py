@@ -2,16 +2,17 @@ import threading
 from metadata.MetadataParser import MetadataParser
 from file_transfer.FileReceiver import FileReceiver
 from file_transfer.FileSender import FileSender
+from sockets import TCPSocket
 
 class TCPConnection(threading.Thread):
     
-    def __init__(self, socket, fs_root):
+    def __init__(self, socket: TCPSocket, fs_root):
         threading.Thread.__init__(self)
         self.socket = socket
         self.fs_root = fs_root
         self.metadata_parser = MetadataParser()
         self.file_sender = FileSender(fs_root)
-        self.file_receiver = FileReceiver()
+        self.file_receiver = FileReceiver(fs_root)
         
 
     def run(self):

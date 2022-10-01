@@ -1,5 +1,5 @@
 import os
-from FileTransferValidator import FileTransferValidator
+from .FileTransferValidator import FileTransferValidator
 from sockets import TCPSocket
 from metadata import Metadata
 from constants import CHUNK_SIZE
@@ -24,7 +24,7 @@ class FileSender:
         - payload
         '''
         file_path = os.path.join(self.fs_root, metadata.get_path())
-        self.verify_valid_path(socket, file_path)
+        self.validator.verify_valid_path(socket, file_path)
         file_size = os.path.getsize(file_path)
         self.validator.verify_valid_file_size(socket, file_size)
         self.send_ack_message(socket, file_size)

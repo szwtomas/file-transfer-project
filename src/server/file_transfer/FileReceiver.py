@@ -1,8 +1,7 @@
-from curses import meta
-from server.sockets.TCPSocket import TCPSocket
+from sockets import TCPSocket
 from constants import CHUNK_SIZE
 from metadata import Metadata
-from FileTransferValidator import FileTransferValidator
+from .FileTransferValidator import FileTransferValidator
 
 class FileReceiver:
 
