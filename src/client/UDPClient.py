@@ -24,7 +24,7 @@ class UDPClient:
                     offset = int.from_bytes(self.socket.recvfrom(CHUNK_OFFSET_BYTES), byteorder="big")
                     chunk_size = int.from_bytes(self.socket.recvfrom(CHUNK_SIZE_BYTES), byteorder="big")
                     chunk = self.socket.recvfrom(chunk_size)
-                except:
+                except socket.timeout:
                     print("Server is not responding")
                     continue
                 if offset != current_offset:
