@@ -26,13 +26,7 @@ class Server:
                 break
             elif user_command == "hello" or user_command == "h":
                 print("Hello :)")
-            elif user_command == "write":
-                print("Trying to write file in fs_root: ")
-                f = open(self.fs_root + "/hello.txt", "w")
-                f.write("Hello world")
-                f.close()
             else:
                 print("Unknown command :(")
-
 
         print("Server stoped")
