@@ -27,6 +27,7 @@ class FileTransferValidator:
         '''
         if not os.path.isfile(file_path):
             error_message = f"File {file_path} does not exist"
+            print(error_message)
             self.send_invalid_download_message(socket)
             raise FileDoesNotExistException(error_message)
 

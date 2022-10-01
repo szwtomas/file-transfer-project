@@ -12,9 +12,13 @@ class MetadataParser:
         '''
         try:
             print("Data: ", data)
-            is_download = self.parse_is_download(data) 
+            is_download = self.parse_is_download(data)
+            print(f"Is Download: {is_download}") 
             path = self.parse_path(data)
-            return Metadata(is_download, path, 0 if is_download else self.parse_file_size(data))
+            print(f"path: {path}")
+            metadata = Metadata(is_download, path, 0 if is_download else self.parse_file_size(data))
+            print(f"Received Metadata: {metadata}")
+            return metadata
         except Exception as e:
             raise Exception("Error parsing metadata: " + str(e))
 

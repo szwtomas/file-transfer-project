@@ -18,6 +18,7 @@ class TCPConnection(threading.Thread):
     def run(self):
         self.handle_connection()
 
+
     def handle_connection(self):
         try:
             data = self.socket.read_data()
@@ -29,10 +30,13 @@ class TCPConnection(threading.Thread):
 
 
     def transfer_file(self, metadata):
+        print("Calling transfer_file")
         try:
             if metadata.get_is_download():
+                print("is_download")
                 self.file_sender.send_file(self.socket, metadata)
             else:
+                print("is_download")
                 self.file_receiver.receive_file(self.socket, self.fs_root, metadata, metadata.file_size)
         except Exception as e:
             print(f"Exception in transfer_file: {e}")

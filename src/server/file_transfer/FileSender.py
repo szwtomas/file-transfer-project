@@ -23,10 +23,17 @@ class FileSender:
         - 4 bytes: Payload size in bytes
         - payload
         '''
+        print("Starting is_download")
         file_path = os.path.join(self.fs_root, metadata.get_path())
+        print(f"file_path: {file_path}")
+        print("About to validate path:")
         self.validator.verify_valid_path(socket, file_path)
+        print("Path validated")
         file_size = os.path.getsize(file_path)
+        print(f"Filesize: {file_size}")
         self.validator.verify_valid_file_size(socket, file_size)
+        print("Filesize validated")
+        print("About to send ack message")
         self.send_ack_message(socket, file_size)
         try:
             offset = 0
@@ -67,4 +74,5 @@ class FileSender:
         ack_message_btyes = b"\x00" + file_size.to_bytes(4, "big")
         print(f"Sending ack message: {ack_message_btyes}")
         socket.send_data(ack_message_btyes)
+        print("Ack message sent")
         
