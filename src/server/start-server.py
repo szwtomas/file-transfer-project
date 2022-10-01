@@ -1,14 +1,14 @@
 import os
 from Server import Server
+from constants import LOCALHOST, LISTEN_PORT
 
-HOST = "127.0.0.1"
-PORT = 7878
 cwd = os.getcwd()
 SERVER_FS_ROOT = os.getcwd() + "../../fs_root"
 
 
 def main():
-    server = Server(HOST, PORT)
+    print(f"fs_root: {SERVER_FS_ROOT}")
+    server = Server(LOCALHOST, LISTEN_PORT, SERVER_FS_ROOT)
     server.run()
 
 

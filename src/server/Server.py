@@ -1,17 +1,19 @@
 from Acceptor import Acceptor
-from constants import HOST, PORT, FS_ROOT
 from user_commands import QUIT, QUIT_ABREVIATED
 
 class Server:
 
-    def __init__(self):
+    def __init__(self, host, port, fs_root):
         self.acceptor = None
+        self.host = host
+        self.port = port
+        self.fs_root = fs_root
 
     def run(self):
         print("Running server...")
             
         # We can optionally accept host and port as command line parameters in the future
-        self.acceptor = Acceptor(HOST, PORT, FS_ROOT)
+        self.acceptor = Acceptor(self.host, self.port, self.fs_root)
         self.acceptor.start()
         while True:
             user_command = input()

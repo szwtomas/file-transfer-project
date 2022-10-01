@@ -1,4 +1,4 @@
-from Metadata import Metadata
+from .Metadata import Metadata
 
 class MetadataParser:
 

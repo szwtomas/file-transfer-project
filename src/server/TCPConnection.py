@@ -1,6 +1,7 @@
 import threading
 from metadata.MetadataParser import MetadataParser
-from file_transfer import FileSender, FileReceiver
+from file_transfer.FileReceiver import FileReceiver
+from file_transfer.FileSender import FileSender
 
 class TCPConnection(threading.Thread):
     
