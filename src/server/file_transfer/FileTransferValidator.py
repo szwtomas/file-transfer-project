@@ -22,6 +22,9 @@ class FileTransferValidator:
 
 
     def verify_valid_path(self, socket: TCPSocket, file_path: str):
+        '''
+        TODO: Maybe add some regex verification to check if path syntax is valid
+        '''
         if not os.path.isfile(file_path):
             error_message = f"File {file_path} does not exist"
             self.send_invalid_download_message(socket)

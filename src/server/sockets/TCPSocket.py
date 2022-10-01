@@ -8,8 +8,8 @@ class TCPSocket:
         self.socket = socket
 
 
-    def read_data(self):
-        return self.socket.recv(RECV_CHUNK_SIZE)
+    def read_data(self, chunk_size=RECV_CHUNK_SIZE):
+        return self.socket.recv(chunk_size)
 
 
     def send_data(self, data):

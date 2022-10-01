@@ -1,3 +1,4 @@
+from curses import meta
 from server.sockets.TCPSocket import TCPSocket
 from constants import CHUNK_SIZE
 from metadata import Metadata
@@ -19,5 +20,29 @@ class FileReceiver:
         - chunk_size bytes: payload 
         '''
         self.validator.verify_valid_file_size(socket, metadata.get_file_size())
+        self.send_ack_message(socket)
+
+        path = metadata.get_path()
+        file_size = metadata.get_file_size()
+
+        try:
+            with open(path, "wb") as file:
+                print(f"About to receive file: {path}")
+                while file_size > 0:
+                    _ = int.from_bytes(self.socket.recv(4), byteorder="big") # we don't need the offset in TCP
+                    chunk_size = int.from_bytes(self.socket.recv(4), byteorder="big")
+                    chunk = self.socket.recv(chunk_size)
+                    print(f"Received chunk: {chunk}")
+                    file.write(chunk)
+                    file_size -= CHUNK_SIZE
+
+        except Exception as e:
+            print(f"Exception receiving file: {e}")
+
+    
+    def send_ack_message(socket):
+        ack_message_btyes = b"\x00"
+        print(f"Sending ack message: {ack_message_btyes}")
+        socket.send_data(ack_message_btyes)
 
     
