@@ -20,15 +20,19 @@ class Server:
             if user_command == QUIT or user_command == QUIT_ABREVIATED:
                 print("Server stopping")
                 self.acceptor.stop_running()
+                print("About to join acceptor thread")
                 self.acceptor.join()
+                print("Acceptor thread joined")
                 break
             elif user_command == "hello" or user_command == "h":
                 print("Hello :)")
             elif user_command == "write":
                 print("Trying to write file in fs_root: ")
-                f = open(FS_ROOT + "/hello.txt", "w")
+                f = open(self.fs_root + "/hello.txt", "w")
                 f.write("Hello world")
                 f.close()
             else:
                 print("Unknown command :(")
 
+
+        print("Server stoped")

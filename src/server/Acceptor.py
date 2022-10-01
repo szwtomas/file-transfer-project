@@ -3,7 +3,7 @@ from socket import AF_INET, SOCK_STREAM, socket, timeout
 from TCPConnection import TCPConnection
 from sockets.TCPSocket import TCPSocket
 
-ACCEPT_TIMEOUT_IN_SECONDS = 10
+ACCEPT_TIMEOUT_IN_SECONDS = 3
 
 class Acceptor(threading.Thread):
     
@@ -17,27 +17,34 @@ class Acceptor(threading.Thread):
         self.should_run = True
         
     def run(self):
+        print("Acceptor started running")
         self.socket = socket(AF_INET, SOCK_STREAM)
-        self.socket.bind((self.host, self.port))
+        listen_address = (self.host, self.port)
+        self.socket.bind(listen_address)
         self.socket.listen()
+        print(f"Acceptor listening on address: {listen_address}")
         self.socket.settimeout(ACCEPT_TIMEOUT_IN_SECONDS)
+        print(f"Acceptor socket timeout set to: {ACCEPT_TIMEOUT_IN_SECONDS} seconds")
         try:
             while self.should_run:
-                client_socket, client_address = self.socket.accept()
+                print("Acceptor waiting for incoming connection...")
+                try:
+                    client_socket, client_address = self.socket.accept()
+                except timeout:
+                    print("Acceptor timeouted")
+                    continue
                 tcp_socket = TCPSocket(client_socket)
                 self.connections[client_address] = TCPConnection(tcp_socket, self.fs_root)
                 self.connections[client_address].handle_connection()
-        except timeout:
-            # TODO: Add timeout error handling
-            # Probably close connections and that sort of thing
-            print("Timeout")
         except Exception as e:
             print(f"Error: {e}")
         
 
     def stop_running(self):
         self.socket.close()
+        print("Acceptor socket closed")
         for connection in self.connections:
+            print(f"Closing connection: {connection}")
             self.connections[connection].stop_running()
             self.connections[connection].join()
         self.should_run = False
