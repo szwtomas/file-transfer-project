@@ -31,7 +31,7 @@ class FileReceiver:
             with open(path, "wb") as file:
                 print(f"About to receive file: {path}")
                 while file_size > 0:
-                    _ = int.from_bytes(socket.read_data(4), byteorder="big") # we don't need the offset in TCP
+                    _ = int.from_bytes(socket.read_data(4), byteorder="big") # we don't need the seq number in TCP
                     chunk_size = int.from_bytes(socket.read_data(4), byteorder="big")
                     chunk = socket.read_data(chunk_size)
                     print(f"Received chunk: {chunk}")

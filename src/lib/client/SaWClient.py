@@ -3,6 +3,7 @@ import os
 from socket import SOCK_DGRAM, socket, AF_INET
 from constants import *
 import time
+import logging
 
 
 class SaWClient:
@@ -126,11 +127,10 @@ class SaWClient:
 
     def parse_download_response(self, response):
         # Parse response packet and check if payload size is valid
-        packet_seq = int.from_bytes(response[:PAYLOAD_SIZE_BYTES], byteorder="big")
-        payload_size = int.from_bytes(response[CHUNK_OFFSET_BYTES:CHUNK_OFFSET_BYTES + PAYLOAD_SIZE_BYTES],
+        packet_seq = int.from_bytes(response[:PACKET_SEQUENCE_BYTES], byteorder="big")
+        payload_size = int.from_bytes(response[PACKET_SEQUENCE_BYTES:PACKET_SEQUENCE_BYTES + PAYLOAD_SIZE_BYTES],
                                       byteorder="big")
         if payload_size > MAX_PAYLOAD_SIZE:
             return True, None, None
-        payload = response[
-                  CHUNK_OFFSET_BYTES + PAYLOAD_SIZE_BYTES:CHUNK_OFFSET_BYTES + PAYLOAD_SIZE_BYTES + payload_size]
+        payload = response[PACKET_SEQUENCE_BYTES + PAYLOAD_SIZE_BYTES:PACKET_SEQUENCE_BYTES + PAYLOAD_SIZE_BYTES + payload_size]
         return False, packet_seq, payload
