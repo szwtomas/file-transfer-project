@@ -61,16 +61,29 @@ class FileSender:
         data += sequence_number.to_bytes(4, "big")
         data += len(payload).to_bytes(4, "big")
         data += payload
+        remaining_bytes = CHUNK_SIZE - 8 - len(payload)
+        if remaining_bytes > 0:
+            data += self.get_empty_bytes(remaining_bytes)
+            
         return data
 
+
+    def get_empty_bytes(self, amount):
+        empty = 0
+        return empty.to_bytes(amount, "big")
+
+
+    def get_ack_message(self, file_size):
+        return b"\x00" + file_size.to_bytes(4, "big") + self.get_empty_bytes(1019)
 
     def send_ack_message(self, socket, file_size: int):
         '''
         Sends an ack message to the client, with the following headers:
         1 byte: 0x0
         4 bytes: file size
+        Rest of bytes filled with 0 (Total of 1024 bytes)
         '''
-        ack_message_btyes = b"\x00" + file_size.to_bytes(4, "big")
+        ack_message_btyes = self.get_ack_message(file_size)
         print(f"Sending ack message: {ack_message_btyes}")
         socket.send_data(ack_message_btyes)
         print("Ack message sent")

@@ -9,6 +9,7 @@ class FileReceiver:
         self.fs_root = fs_root
         self.validator = FileTransferValidator()
 
+
     def receive_file(self, socket: TCPSocket, metadata: Metadata):
         '''
         Receives file from the client
@@ -42,8 +43,13 @@ class FileReceiver:
             print(f"Exception receiving file: {e}")
 
     
+    def get_empty_bytes(self, amount):
+        empty = 0
+        return empty.to_bytes(amount, "big")
+
+
     def send_ack_message(self, socket):
-        ack_message_btyes = b"\x00"
+        ack_message_btyes = self.get_empty_bytes(1024)
         print(f"Sending ack message: {ack_message_btyes}")
         socket.send_data(ack_message_btyes)
 

@@ -4,7 +4,9 @@ from .message_utils import send_message_until_acked
 from ..constants import CHUNK_SIZE
 from ..exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedException
 
-class SAWFileSender():
+FIRST_MESSAGE_SEQUENCE_NUMBER = 1
+
+class SAWFileSender:
     
     def __init__(self, fs_root, read_message, send_message):
         self.fs_root = fs_root
@@ -30,7 +32,7 @@ class SAWFileSender():
                         raise UDPMessageNotReceivedException("Max retries reached for first ACK")
                     message = self.build_payload_message(current_seq_number, chunk_data)
                     response = send_message_until_acked(self.read_message, self.send_message, current_seq_number, message)
-                    if not response and current_seq_number == 1:
+                    if not response and current_seq_number == FIRST_MESSAGE_SEQUENCE_NUMBER:
                         ack_message = self.build_ack_message(file_size)
                         self.send_message(ack_message)
                         operation_retries_count += 1
