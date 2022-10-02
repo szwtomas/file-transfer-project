@@ -1,4 +1,6 @@
+from server.exceptions.EmptyPathException import EmptyPathException
 from .Metadata import Metadata
+from exceptions import MetadataParseException
 
 class MetadataParser:
 
@@ -11,7 +13,6 @@ class MetadataParser:
         4 bytes: file size (only for uploads)
         '''
         try:
-            print("Data: ", data)
             is_download = self.parse_is_download(data)
             print(f"Is Download: {is_download}") 
             path = self.parse_path(data)
@@ -20,7 +21,7 @@ class MetadataParser:
             print(f"Received Metadata: {metadata}")
             return metadata
         except Exception as e:
-            raise Exception("Error parsing metadata: " + str(e))
+            raise MetadataParseException("Error parsing metadata: " + str(e))
 
 
     def parse_is_download(self, data) -> bool:
@@ -31,8 +32,7 @@ class MetadataParser:
         path_length = data[1]
         path = data[2:2 + path_length]
         if len(path) == 0:
-            raise Exception("Path is empty")
-            
+            raise EmptyPathException("Path is empty"))            
         return path.decode("utf-8")
 
 
