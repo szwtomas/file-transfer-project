@@ -32,7 +32,7 @@ class MetadataParser:
         path_length = data[1]
         path = data[2:2 + path_length]
         if len(path) == 0:
-            raise EmptyPathException("Path is empty"))            
+            raise EmptyPathException("Path is empty")            
         return path.decode("utf-8")
 
 
