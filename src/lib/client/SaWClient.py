@@ -1,6 +1,7 @@
 from multiprocessing.reduction import ACKNOWLEDGE
 import os
 from socket import SOCK_DGRAM, socket, AF_INET
+from urllib import response
 from constants import *
 import time
 import logging
@@ -109,20 +110,20 @@ class SaWClient:
             self.socket.sendto(self.get_request(path, type), (server_ip, SERVER_PORT))
             try:
                 self.socket.settimeout(1)
-                packet_seq = self.socket.recvfrom(PACKET_SEQUENCE_BYTES)
-                if not int.from_bytes(packet_seq) == 0:
+                response = self.socket.recvfrom(PACKET_SEQUENCE_BYTES + RESPONSE_STATUS_BYTES)
+                if not int.from_bytes(response[:PACKET_SEQUENCE_BYTES]) == 0:
+                    start_timer = time.time() # FIXME: puede andar mal, falta flushear el socket
                     continue
-                response = self.socket.recvfrom(RESPONSE_STATUS_BYTES)
             except socket.timeout:
                 print("Server is not responding")
                 continue
-            if type == DOWNLOAD and response == 0:
+            if type == DOWNLOAD and response[PACKET_SEQUENCE_BYTES] == 0:
                 try:
                     file_size = self.socket.recvfrom(FILE_SIZE_BYTES)
                 except socket.timeout:
                     print("Server is not responding")
                     continue
-            return response, file_size
+            return response[PACKET_SEQUENCE_BYTES:], file_size
         return None, 0  # add to logger that program timeouted
 
     def parse_download_response(self, response):
