@@ -18,5 +18,16 @@ def _get_seq_number_from_message(data):
 
 
 def send_message_until_acked(read_message, send_message, seq_number, data):
-    send_message(data)
-    read_until_expected_seq_number(read_message, seq_number)
+    retry_count = 0
+    max_retries = 10
+    while retry_count < max_retries:
+        send_message(data)
+        try:
+            data = read_until_expected_seq_number(read_message, seq_number)
+            return data
+        except UDPMessageNotReceivedException:
+            retry_count += 1
+            continue
+    
+    return False
+            

@@ -19,13 +19,22 @@ class SAWFileSender():
         ack_message = self.build_ack_message(file_size)
         self.send_message(ack_message)
         current_seq_number = 1
+        operation_retries_count = 0
+        max_operation_retries_count = 5
         try:
             with open(file_path, "rb") as file:
                 print("Starting to send file")
                 chunk_data = file.read(CHUNK_SIZE)
                 while chunk_data:
+                    if operation_retries_count == max_operation_retries_count:
+                        raise UDPMessageNotReceivedException("Max retries reached for first ACK")
                     message = self.build_payload_message(current_seq_number, chunk_data)
-                    send_message_until_acked(self.read_message, self.send_message, current_seq_number, message)
+                    response = send_message_until_acked(self.read_message, self.send_message, current_seq_number, message)
+                    if not response and current_seq_number == 1:
+                        ack_message = self.build_ack_message(file_size)
+                        self.send_message(ack_message)
+                        operation_retries_count += 1
+                        continue
                     current_seq_number += 1
                     chunk_data = file.read(CHUNK_SIZE)
 
@@ -37,6 +46,8 @@ class SAWFileSender():
 
     def build_ack_message(self, file_size):
         data = b""
+        seq_number = 0
+        data += seq_number.to_bytes(4, "big")
         data += "\x00"
         data += file_size.to_bytes(4, "big")
         return data
