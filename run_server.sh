@@ -5,4 +5,4 @@
 # 2. python3 start-server.py
 
 cd src/server
-python3 start-server.py
+python3 start-server.py -h

@@ -1,14 +1,13 @@
-import os
 from Server import Server
-from constants import LOCALHOST, LISTEN_PORT
+from parsing import server_args
 
-SERVER_FS_ROOT = os.getcwd() + "/../../fs_root"
 
-def main():
+def main(host, port, storage):
     # We can optionally accept host and port as command line parameters in the future
-    server = Server(LOCALHOST, LISTEN_PORT, SERVER_FS_ROOT)
+    server = Server(host, port, storage)
     server.run()
 
 
 if __name__ == "__main__":
-    main()
+    args = server_args()
+    main(args.host, args.port, args.storage)
