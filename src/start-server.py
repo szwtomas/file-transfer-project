@@ -1,5 +1,5 @@
-from Server import Server
-from parsing import server_args
+from lib.server.Server import Server
+from lib.server.parsing import server_args
 
 
 def main(host, port, storage):

@@ -1,5 +1,5 @@
-from TCPClient import TCPClient
-from parsing import download_args
+from lib.client.TCPClient import TCPClient
+from lib.client.parsing import download_args
 
 
 def main(host, filename):

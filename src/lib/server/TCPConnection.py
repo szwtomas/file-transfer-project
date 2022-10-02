@@ -1,8 +1,8 @@
 import threading
-from metadata.MetadataParser import MetadataParser
-from file_transfer.FileReceiver import FileReceiver
-from file_transfer.FileSender import FileSender
-from sockets import TCPSocket
+from .metadata.MetadataParser import MetadataParser
+from .file_transfer.FileReceiver import FileReceiver
+from .file_transfer.FileSender import FileSender
+from .sockets.TCPSocket import TCPSocket
 
 class TCPConnection(threading.Thread):
     

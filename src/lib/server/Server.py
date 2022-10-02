@@ -1,5 +1,5 @@
-from Acceptor import Acceptor
-from user_commands import QUIT, QUIT_ABREVIATED
+from .Acceptor import Acceptor
+from .user_commands import QUIT, QUIT_ABREVIATED
 
 class Server:
 

@@ -1,7 +1,7 @@
 import threading
 from socket import timeout
-from TCPConnection import TCPConnection
-from sockets.TCPSocket import TCPSocket, create_tcp_socket
+from .TCPConnection import TCPConnection
+from .sockets.TCPSocket import TCPSocket, create_tcp_socket
 
 ACCEPT_TIMEOUT_IN_SECONDS = 3
 

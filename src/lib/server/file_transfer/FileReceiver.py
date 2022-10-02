@@ -1,6 +1,6 @@
-from sockets import TCPSocket
-from constants import CHUNK_SIZE
-from metadata import Metadata
+from ..sockets.TCPSocket import TCPSocket
+from ..constants import CHUNK_SIZE
+from ..metadata.Metadata import Metadata
 from .FileTransferValidator import FileTransferValidator
 
 class FileReceiver:

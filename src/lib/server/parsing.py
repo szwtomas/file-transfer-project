@@ -1,5 +1,5 @@
 import argparse
-from constants import LOCALHOST, LISTEN_PORT
+from .constants import LOCALHOST, LISTEN_PORT
 import os
 
 

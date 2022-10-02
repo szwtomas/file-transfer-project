@@ -1,7 +1,7 @@
 import os
 from socket import socket, AF_INET, SOCK_STREAM
 #from constants import DOWNLOAD, FILE_SIZE_BYTES, PATH_SIZE_BYTES, RESPONSE_STATUS_BYTES, SERVER_PORT, CHUNK_SIZE_BYTES, CHUNK_OFFSET_BYTES, UPLOAD
-from constants import *
+from .constants import *
 
 class TCPClient:
     def __init__(self):

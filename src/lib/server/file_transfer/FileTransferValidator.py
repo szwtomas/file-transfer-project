@@ -1,7 +1,7 @@
 import os
-from sockets import TCPSocket
-from constants import MAX_FILE_SIZE_SUPPORTED_IN_BYTES, ERROR_BYTES
-from exceptions import FileDoesNotExistException, FileSizeNotSupportedException
+from ..sockets.TCPSocket import TCPSocket
+from ..constants import MAX_FILE_SIZE_SUPPORTED_IN_BYTES, ERROR_BYTES
+from ..exceptions import FileDoesNotExistException, FileSizeNotSupportedException
 
 
 class FileTransferValidator:

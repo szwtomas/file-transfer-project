@@ -1,6 +1,6 @@
-from server.exceptions.EmptyPathException import EmptyPathException
+from ..exceptions.EmptyPathException import EmptyPathException
 from .Metadata import Metadata
-from exceptions import MetadataParseException
+from ..exceptions.MetadataParseException import MetadataParseException
 
 class MetadataParser:
 

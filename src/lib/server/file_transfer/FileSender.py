@@ -1,8 +1,8 @@
 import os
 from .FileTransferValidator import FileTransferValidator
-from sockets import TCPSocket
-from metadata import Metadata
-from constants import CHUNK_SIZE
+from ..sockets.TCPSocket import TCPSocket
+from ..metadata.Metadata import Metadata
+from ..constants import CHUNK_SIZE
 
 class FileSender:
 

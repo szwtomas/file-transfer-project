@@ -1,5 +1,5 @@
 import argparse
-from constants import SERVER_PORT
+from .constants import SERVER_PORT
 
 
 def upload_args():
