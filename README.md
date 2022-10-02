@@ -19,6 +19,7 @@ Server first response Message:
 
 - Response to Download Request:
 
+  - packet sequence number: 4 bytes
   - status: 1 byte indicating if there was an error with the request (0 indicating OK, 1 indicating Error)
   - file_size: 4 bytes indicating the file size (only if status == OK)
 
