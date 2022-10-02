@@ -9,6 +9,7 @@ Handshake:
 
 Client first Message:
 
+- Sequence Number: 4 bytes indicating the number of the message
 - operation: 1 byte indicating if the operation is download or upload (0 for download, other for upload)
 - path_size: 1 byte indicating the path's size in bytes
 - path of size path_size
@@ -24,14 +25,15 @@ Server first response Message:
 - Response to Upload Request:
   - status: 1 byte indicating if there was an error with the request (0 indicating OK, 1 indicating Error)
 
-Data messages:
+**_Data messages_**:
 
-- 4 bytes: Offset of the chunk
+- 4 bytes: Sequence number
 - 4 bytes: size of the chunk
 - chunk_size bytes: payload
 
-ACK:
+**_ACK_**:
 
+- 4 bytes indicating the sequence number of the acked packet
 - 4 bytes indicating total of bytes received overall
 
 **Stop And Wait Protocol**
