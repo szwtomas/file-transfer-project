@@ -36,30 +36,29 @@ class FileSender:
         print("About to send ack message")
         self.send_ack_message(socket, file_size)
         try:
-            offset = 0
+            seq_number = 0
             with open(file_path, "rb") as file:
                 print(f"Sending file {file_path} to client")
                 chunk_data = file.read(CHUNK_SIZE)
                 print(f"Entering while loop, {chunk_data}, len: {len(chunk_data)}")
                 while chunk_data:
-                    message_bytes = self.build_payload_message(offset, chunk_data)
+                    message_bytes = self.build_payload_message(seq_number, chunk_data)
                     print(f"Sending message bytes: {message_bytes}")
                     socket.send_data(message_bytes)
                     print(f"Sent message bytes: {message_bytes}")
-                    offset += len(chunk_data)
-                    print(f"Offset: {offset}")
+                    seq_number += 1
+                    print(f"Sequence number: {seq_number}")
                     chunk_data = file.read(CHUNK_SIZE)
                     print(f"Chunk data: {chunk_data}")
-                    
 
         except Exception as e:
             print(f"Error in send_file: {e}")
 
 
-    def build_payload_message(self, offset: int, payload: bytes) -> bytes:
-        print(f"Building payload message, offset: {offset}, payload: {payload}, len: {len(payload)}")
+    def build_payload_message(self, sequence_number: int, payload: bytes) -> bytes:
+        print(f"Building payload message, seq number: {sequence_number}, payload: {payload}, len: {len(payload)}")
         data = b""
-        data += offset.to_bytes(4, "big")
+        data += sequence_number.to_bytes(4, "big")
         data += len(payload).to_bytes(4, "big")
         data += payload
         return data

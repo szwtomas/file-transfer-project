@@ -39,3 +39,6 @@ class UDPConnection(threading.Thread):
         except Exception as e:
             print(f"UDPConnection Exception: {e}")
 
+    def handle_download(self, metadata):
+        print(f"Handling download for metadata: {metadata}")
+        
