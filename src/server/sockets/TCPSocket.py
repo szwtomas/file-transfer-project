@@ -1,6 +1,9 @@
-from socket import socket
+from socket import socket as create_socket, AF_INET, SOCK_STREAM
 
 RECV_CHUNK_SIZE = 1024
+
+def create_tcp_socket():
+    return create_socket(AF_INET, SOCK_STREAM)
 
 class TCPSocket:
 

@@ -1,7 +1,7 @@
 import threading
-from socket import AF_INET, SOCK_STREAM, socket, timeout
+from socket import timeout
 from TCPConnection import TCPConnection
-from sockets.TCPSocket import TCPSocket
+from sockets.TCPSocket import TCPSocket, create_tcp_socket
 
 ACCEPT_TIMEOUT_IN_SECONDS = 3
 
@@ -18,7 +18,7 @@ class Acceptor(threading.Thread):
         
     def run(self):
         print("Acceptor started running")
-        self.socket = socket(AF_INET, SOCK_STREAM)
+        self.socket = create_tcp_socket()
         listen_address = (self.host, self.port)
         self.socket.bind(listen_address)
         self.socket.listen()
