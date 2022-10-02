@@ -1,7 +1,6 @@
 import os
 from socket import SOCK_DGRAM, socket, AF_INET
-from constants import DOWNLOAD, FILE_SIZE_BYTES, PATH_SIZE_BYTES, RESPONSE_STATUS_BYTES, SERVER_PORT, CHUNK_SIZE_BYTES, CHUNK_OFFSET_BYTES, UPLOAD
-from constants import CHUNK_SIZE
+from constants import *
 import time
 
 class UDPClient:
@@ -21,19 +20,18 @@ class UDPClient:
             while file_size > current_offset:
                 try:
                     self.socket.settimeout(5)
-                    offset = int.from_bytes(self.socket.recvfrom(CHUNK_OFFSET_BYTES), byteorder="big")
-                    chunk_size = int.from_bytes(self.socket.recvfrom(CHUNK_SIZE_BYTES), byteorder="big")
-                    chunk = self.socket.recvfrom(chunk_size)
+                    response = self.socket.recvfrom(SAW_CHUNK_SIZE)
+                    is_error, offset, payload = self.parse_download_response(response)
                 except socket.timeout:
                     print("Server is not responding")
                     continue
-                if offset != current_offset:
-                    print("Error in offset")
+                if is_error or offset != current_offset:
+                    print("Error in received packet")
                     ack = current_offset.to_bytes(CHUNK_OFFSET_BYTES, byteorder="big")
                 else:
-                    ack = (current_offset + chunk_size).to_bytes(CHUNK_OFFSET_BYTES, byteorder="big")
-                    current_offset += chunk_size
-                    file.write(chunk)
+                    ack = (current_offset + len(payload)).to_bytes(CHUNK_OFFSET_BYTES, byteorder="big")
+                    current_offset += len(payload)
+                    file.write(payload)
 
                 self.socket.sendto(ack, (server_ip, SERVER_PORT))
 
@@ -54,9 +52,9 @@ class UDPClient:
                 # offset
                 data += current_offset.to_bytes(CHUNK_OFFSET_BYTES, byteorder="big")
 
-                chunk = file.read(CHUNK_SIZE)
+                chunk = file.read(MAX_PAYLOAD_SIZE)
                 # chunk size
-                data += len(chunk).to_bytes(CHUNK_SIZE_BYTES, byteorder="big")
+                data += len(chunk).to_bytes(PAYLOAD_SIZE_BYTES, byteorder="big")
                 # chunk
                 data += chunk
                 while True: # wait until receive correct ack
@@ -71,7 +69,7 @@ class UDPClient:
                         print("Server is not responding")
                         continue
 
-                current_offset += CHUNK_SIZE
+                current_offset += MAX_PAYLOAD_SIZE
 
     def get_request(self, path, type):
         #Client First Message
@@ -105,3 +103,12 @@ class UDPClient:
                     print("Server is not responding")
                     continue
             return response, file_size
+
+    def parse_download_response(self, response):
+        # Parse response packet and check if payload size is valid
+        offset = int.from_bytes(response[:CHUNK_OFFSET_BYTES], byteorder="big")
+        payload_size = int.from_bytes(response[CHUNK_OFFSET_BYTES:CHUNK_OFFSET_BYTES + PAYLOAD_SIZE_BYTES], byteorder="big")
+        if payload_size > MAX_PAYLOAD_SIZE:
+            return True, None, None
+        payload = response[CHUNK_OFFSET_BYTES + PAYLOAD_SIZE_BYTES:CHUNK_OFFSET_BYTES + PAYLOAD_SIZE_BYTES + payload_size]
+        return False, offset, payload
