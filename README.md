@@ -31,4 +31,12 @@ Data messages:
 - chunk_size bytes: payload
 
 ACK:
+
 - 4 bytes indicating total of bytes received overall
+
+**Stop And Wait Protocol**
+
+- The first message interchange is the same as in TCP, because we are already using an ACK response
+- Once the file transfer starts, the protcol is almost the same as in TCP but responding with an ACK for every received message
+- The ACK consists on the offset received, and for every message both the server and client sends, they must wait for the ACK to be received in order to send the next message
+- If a message with a different offset than expected is received, the message is dropped
