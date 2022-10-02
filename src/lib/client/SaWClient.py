@@ -3,6 +3,7 @@ import os
 from socket import SOCK_DGRAM, socket, AF_INET
 from constants import *
 import time
+import logging
 
 class SaWClient:
     def __init__(self):
@@ -65,6 +66,7 @@ class SaWClient:
                         self.socket.settimeout(5)
                         acknowledge = self.socket.recvfrom(CHUNK_OFFSET_BYTES)
                         if current_offset + len(chunk) == int.from_bytes(acknowledge, byteorder="big"):
+                            current_offset += MAX_PAYLOAD_SIZE
                             break
 
                     except socket.timeout:
@@ -72,7 +74,6 @@ class SaWClient:
                         retry_count += 1
                         continue
 
-                current_offset += MAX_PAYLOAD_SIZE
 
     def get_request(self, path, type):
         #Client First Message

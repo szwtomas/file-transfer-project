@@ -45,36 +45,46 @@ class GBNClient:
             return
 
         with open(path, 'rb') as file:
+            file.seek(0)
             file_size = os.path.getsize(path)
             current_offset = 0
             while file_size > current_offset:
-                data = b''
-                for n in range(GBN_WINDOW_SIZE): # FIXME: we should decide if we want to send one mor packet for each ack received or if we want to send all the packets and wait for all the acks
+                chunks_sent = 0
+                file.seek(current_offset)
+                for _ in range(GBN_WINDOW_SIZE): # FIXME: we should decide if we want to send one mor packet for each ack received or if we want to send all the packets and wait for all the acks
+                    data = b''
                     # offset
                     data += current_offset.to_bytes(CHUNK_OFFSET_BYTES, byteorder="big")
 
                     chunk = file.read(MAX_PAYLOAD_SIZE)
+
+                    if not chunk:
+                        break
+
                     # chunk size
                     data += len(chunk).to_bytes(PAYLOAD_SIZE_BYTES, byteorder="big")
                     # chunk
                     data += chunk
-
-                retry_count = 0
-                while  retry_count <= RETRY_LIMIT: # wait until receive correct ack, retry RETRY_LIMIT times
                     self.socket.sendto(data, (server_ip, SERVER_PORT))
+                    chunks_sent += 1
+
+                for _ in range(chunks_sent):
                     try:
-                        self.socket.settimeout(5)
-                        acknowledge = self.socket.recvfrom(CHUNK_OFFSET_BYTES)
-                        if current_offset + len(chunk) == int.from_bytes(acknowledge, byteorder="big"):
-                            break
+                        while True:
+                            self.socket.settimeout(3)
+                            acknowledge = self.socket.recvfrom(CHUNK_OFFSET_BYTES)
+                            if acknowledge >= current_offset:
+                                break
 
                     except socket.timeout:
                         print("Server is not responding")
-                        retry_count += 1
                         continue
+                    
+                    if acknowledge > current_offset:
+                        current_offset += MAX_PAYLOAD_SIZE
+                    
 
-                current_offset += MAX_PAYLOAD_SIZE
-
+                
     def get_request(self, path, type):
         #Client First Message
         message = b""
