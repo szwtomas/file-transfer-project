@@ -1,7 +1,7 @@
 import os
 from socket import socket, AF_INET, SOCK_STREAM
-from constants import DOWNLOAD, FILE_SIZE_BYTES, PATH_SIZE_BYTES, RESPONSE_STATUS_BYTES, SERVER_PORT, CHUNK_SIZE_BYTES, CHUNK_OFFSET_BYTES, UPLOAD
-from constants import CHUNK_SIZE
+#from constants import DOWNLOAD, FILE_SIZE_BYTES, PATH_SIZE_BYTES, RESPONSE_STATUS_BYTES, SERVER_PORT, CHUNK_SIZE_BYTES, CHUNK_OFFSET_BYTES, UPLOAD
+from constants import *
 
 class TCPClient:
     def __init__(self):
@@ -23,11 +23,13 @@ class TCPClient:
         with open(path, 'wb') as file:
             while file_size > 0:
                 offset = int.from_bytes(self.socket.recv(CHUNK_OFFSET_BYTES), byteorder="big")
-                chunk_size = int.from_bytes(self.socket.recv(CHUNK_SIZE_BYTES), byteorder="big")
+                chunk_size = int.from_bytes(self.socket.recv(PAYLOAD_SIZE_BYTES), byteorder="big")
+                if chunk_size > MAX_PAYLOAD_SIZE:
+                    print(f"Error: chunk size exceeded maximum payload size")
                 chunk = self.socket.recv(chunk_size)
                 print(f"Received chunk: {chunk}")
                 file.write(chunk)
-                file_size -= CHUNK_SIZE
+                file_size -= chunk_size
 
     def start_upload(self, server_ip, path):
         self.socket.connect((server_ip, SERVER_PORT))
@@ -42,13 +44,13 @@ class TCPClient:
                     # offset
                     data += bytes_sent.to_bytes(CHUNK_OFFSET_BYTES, byteorder="big")
                     
-                    chunk = file.read(CHUNK_SIZE)
+                    chunk = file.read(MAX_PAYLOAD_SIZE)
                     # chunk size
-                    data += len(chunk).to_bytes(CHUNK_SIZE_BYTES, byteorder="big")
+                    data += len(chunk).to_bytes(PAYLOAD_SIZE_BYTES, byteorder="big")
                     # chunk
                     data += chunk
                     self.socket.sendall(data)
-                    bytes_sent += CHUNK_SIZE
+                    bytes_sent += MAX_PAYLOAD_SIZE
         else:
             print("Error in upload response")
             return
