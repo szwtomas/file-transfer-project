@@ -5,4 +5,4 @@
 # 2. python3 download-file.py
 
 cd src/client
-python3 download-file.py
+python3 download-file.py -h

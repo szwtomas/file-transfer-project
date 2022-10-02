@@ -1,11 +1,13 @@
 from TCPClient import TCPClient
+from parsing import download_args
 
 
-def main():
+def main(host, filename):
     tcp_client = TCPClient()
-    tcp_client.start_download("127.0.0.1", "image.png")
+    tcp_client.start_download(host, filename)
 
 
 
 if __name__ == "__main__":
-    main()
+    args = download_args()
+    main(args.host, args.name)
