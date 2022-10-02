@@ -5,4 +5,4 @@
 # 2. python3 upload-file.py
 
 cd src/client
-python3 upload-file.py
+python3 upload-file.py -h
