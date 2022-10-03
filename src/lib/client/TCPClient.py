@@ -1,55 +1,56 @@
 import os
 from socket import socket, AF_INET, SOCK_STREAM
-from constants import *
 import logger
+from lib.server.constants import CHUNK_SIZE
+from .constants import *
 
+
+DOWNLOAD_CONFIRMED_INDEX = 4
 
 class TCPClient:
     def __init__(self):
         self.socket = socket(AF_INET, SOCK_STREAM)
     
-    def start_download(self, server_ip, path, port, args):
-        try:
-            self.socket.connect((server_ip, port))
-        except ConnectionRefusedError:
-            logger.log_connection_refused()
-            return
 
+    def start_download(self, server_ip, path, port, args):
+        self.socket.connect((server_ip, port))
         self.socket.sendall(self.get_request(path, DOWNLOAD))
         logger.log_send_download_request(path, args)
 
-        response = self.socket.recv(RESPONSE_STATUS_BYTES)
-        if response[0] == 0:
-            logger.log_file_exists(path, args)
-            file_size = int.from_bytes(self.socket.recv(FILE_SIZE_BYTES), byteorder="big")
+        response = self.socket.recv(CHUNK_SIZE)
+        seq_number = int.from_bytes(response[0:4], "big")
+        print(f"Seq number received: {seq_number}")
+        if seq_number != 0:
+                print("Wrong sequence number")
+                return
+
+        print(f"INTFROMBYTES: {response[4]}")
+        download_confirmation = response[4]
+        if download_confirmation == 0:
+            print("Download confirmed")
+            file_size = int.from_bytes(response[5:9], byteorder="big")
+            print("File size: ", file_size)
         else:
             logger.log_file_not_found_error(path, args)
             return
 
         remaining_file_size = file_size
         with open(path, 'wb') as file:
-            while remaining_file_size > 0:
-                offset = int.from_bytes(self.socket.recv(CHUNK_OFFSET_BYTES), byteorder="big")
-                chunk_size = int.from_bytes(self.socket.recv(PAYLOAD_SIZE_BYTES), byteorder="big")
-                if chunk_size > MAX_PAYLOAD_SIZE:
-                    print(f"Error: chunk size exceeded maximum payload size")
-                chunk = self.socket.recv(chunk_size)
-                file.write(chunk)
-                remaining_file_size -= chunk_size
-                logger.log_progress((file_size - remaining_file_size), file_size)
+            print(f"path: {path}")
+            while file_size > 0:
+                # TCP Does not use sequence numbers, so we can discard them
+                message_data = self.socket.recv(CHUNK_SIZE)
+                print(f"Message Data: {message_data[0:16]}")
+                seq_number = int.from_bytes(message_data[0:4], "big")
+                payload_size = int.from_bytes(message_data[4:8], "big")
+                if payload_size > CHUNK_SIZE - 8:
+                    print(f"Invalid payload size: {payload_size}")
+                    return
+                payload = message_data[8:8 + payload_size]
+                print(f"Received payload: {payload}")
+                file.write(payload)
+                file_size -= payload_size
 
-        logger.log_download_success(path, args)
-
-    def start_upload(self, server_ip, path, port, args):
-        if not os.path.isfile(path):
-            logger.log_file_not_found_client_error(path, args)
-            return
-
-        try:
-            self.socket.connect((server_ip, port))
-        except ConnectionRefusedError:
-            logger.log_connection_refused()
-            return
 
         self.socket.sendall(self.get_request(path, UPLOAD))
         logger.log_send_upload_request(path, args)
@@ -64,7 +65,7 @@ class TCPClient:
                 while file_size > bytes_sent:
                     data = b''
                     # offset
-                    data += bytes_sent.to_bytes(CHUNK_OFFSET_BYTES, byteorder="big")
+                    data += bytes_sent.to_bytes(CHUNK_SEQ_NUMBER_BYTES, byteorder="big")
                     
                     chunk = file.read(MAX_PAYLOAD_SIZE)
                     # chunk size
@@ -79,10 +80,13 @@ class TCPClient:
             return
         logger.log_upload_success(path, args)
 
+
     def get_request(self, path, operation):
         #Client First Message
         message = b""
-    
+        seq_number = 0
+        message += seq_number.to_bytes(4, "big")
+
         #operation
         message += operation.to_bytes(1, byteorder="big")
         #path size
@@ -93,3 +97,4 @@ class TCPClient:
         if operation == UPLOAD:
             message += os.path.getsize(path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
         return message
+
