@@ -19,7 +19,7 @@ class MetadataParser:
         4 bytes: file size (only for uploads)
         '''
         try:
-            sequence_number: self.parse_sequence_number(data)
+            sequence_number = self.parse_sequence_number(data)
             if sequence_number != 0:
                 raise MetadataParseException(f"Error parsing metadata: Sequence number is {sequence_number} instad of 0")
             is_download = self.parse_is_download(data)
@@ -34,7 +34,7 @@ class MetadataParser:
 
 
     def parse_sequence_number(self, data) -> int:
-        return int.from_bytes(data[0 : SEQ_NUMBER_BYTES])
+        return int.from_bytes(data[0 : SEQ_NUMBER_BYTES], "big")
 
 
     def parse_is_download(self, data) -> bool:
