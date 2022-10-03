@@ -2,7 +2,7 @@ import os
 from .FileTransferValidator import FileTransferValidator
 from ..sockets.TCPSocket import TCPSocket
 from ..metadata.Metadata import Metadata
-from ..constants import CHUNK_SIZE, FILE_SIZE_BYTES, PACKET_SEQUENCE_BYTES, PAYLOAD_SIZE_BYTES
+from ..constants import CHUNK_SIZE, FILE_SIZE_BYTES, MAX_PAYLOAD_SIZE, PACKET_SEQUENCE_BYTES, PACKET_SIZE, PAYLOAD_SIZE_BYTES
 
 class FileSender:
 
@@ -38,32 +38,28 @@ class FileSender:
             seq_number = 0
             with open(file_path, "rb") as file:
                 print(f"Sending file {file_path} to client")
-                chunk_data = file.read(CHUNK_SIZE)
+                chunk_data = file.read(MAX_PAYLOAD_SIZE)
                 print(f"Entering while loop, {chunk_data}, len: {len(chunk_data)}")
                 while chunk_data:
                     message_bytes = self.build_payload_message(seq_number, chunk_data)
-                    print(f"Sending message bytes: {message_bytes}")
                     socket.send_data(message_bytes)
-                    print(f"Sent message bytes: {message_bytes}")
                     seq_number += 1
                     print(f"Sequence number: {seq_number}")
-                    chunk_data = file.read(CHUNK_SIZE)
-                    print(f"Chunk data: {chunk_data}")
+                    chunk_data = file.read(MAX_PAYLOAD_SIZE)
 
         except Exception as e:
             print(f"Error in send_file: {e}")
 
     def build_payload_message(self, sequence_number: int, payload: bytes) -> bytes:
-        print(f"Building payload message, seq number: {sequence_number}, payload: {payload}, len: {len(payload)}")
+        print(f"Building payload message, seq number: {sequence_number}, payload_len: {len(payload)}")
         data = b""
         data += sequence_number.to_bytes(PACKET_SEQUENCE_BYTES, "big")
-        print(f"PAYLOAD: {payload}")
         print(f"PAYLOAD LENGTH: {len(payload)}")
         payload_len_bytes = len(payload).to_bytes(PAYLOAD_SIZE_BYTES, "big")
         print(f"PAYLOAD_LEN_BYTES: {payload_len_bytes}")
         data += payload_len_bytes
         data += payload
-        remaining_bytes = CHUNK_SIZE - len(data)
+        remaining_bytes = PACKET_SIZE - len(data)
         print(f"REMAINING BYTES: {remaining_bytes}")
         if remaining_bytes > 0:
             data += self.get_empty_bytes(remaining_bytes)
@@ -86,7 +82,6 @@ class FileSender:
         Rest of bytes filled with 0 (Total of 1024 bytes)
         '''
         ack_message_btyes = self.get_ack_message(file_size)
-        print(f"Sending ack message: {ack_message_btyes}")
         socket.send_data(ack_message_btyes)
         print("Ack message sent")
         

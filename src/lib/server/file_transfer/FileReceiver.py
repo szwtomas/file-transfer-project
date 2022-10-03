@@ -25,7 +25,7 @@ class FileReceiver:
         self.send_ack_message(socket)
 
         path = f"{self.fs_root}/{metadata.get_path()}"
-        print("PATH: {path}")
+        print(f"PATH: {path}")
         file_size = metadata.get_file_size()
 
         try:
@@ -35,7 +35,6 @@ class FileReceiver:
                     _ = int.from_bytes(socket.read_data(SEQ_NUMBER_BYTES), byteorder="big")
                     chunk_size = int.from_bytes(socket.read_data(PAYLOAD_SIZE_BYTES), byteorder="big")
                     chunk = socket.read_data(chunk_size)
-                    print(f"Received chunk: {chunk}")
                     file.write(chunk)
                     file_size -= chunk_size
 
@@ -49,6 +48,5 @@ class FileReceiver:
     def send_ack_message(self, socket):
         # we assume there is enough space to receive the file
         ack_message_btyes = self.get_empty_bytes(1024)
-        print(f"Sending ack message: {ack_message_btyes}")
         socket.send_data(ack_message_btyes)
-
+        print(f"Ack message sent")

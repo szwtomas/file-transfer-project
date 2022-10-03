@@ -12,7 +12,7 @@ def upload_args():
                         "--src",
                         metavar="",
                         type=str,
-                        default="./",
+                        default="",
                         help="source file path")
 
     parser.add_argument("-n",

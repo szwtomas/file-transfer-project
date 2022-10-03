@@ -3,7 +3,7 @@ from .constants import LOCALHOST, LISTEN_PORT
 import os
 
 
-SERVER_FS_ROOT = os.getcwd() + "/fs_root"
+SERVER_FS_ROOT = os.getcwd() + "/../server_fs_root"
 
 
 def server_args():

@@ -5,4 +5,4 @@
 # 2. python3 download-file.py -h
 
 cd src
-python3 download-file.py TCP -n test_hola.txt
+python3 download-file.py TCP -n fotito.jpg

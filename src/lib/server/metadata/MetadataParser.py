@@ -41,11 +41,11 @@ class MetadataParser:
         return data[IS_DOWNLOAD_INDEX] == 0
 
 
-    def parse_path(self, data) -> tuple[str, int]:
+    def parse_path(self, data) -> "tuple[str, int]":
         path_length = data[PATH_LENGTH_INDEX]
         path = data[PATH_INDEX : PATH_INDEX + path_length]
         if len(path) == 0:
-            raise EmptyPathException("Path is empty")            
+            raise EmptyPathException("Path is empty")
         return path.decode("utf-8"), path_length
 
 

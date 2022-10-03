@@ -44,7 +44,7 @@ def log_upload_success(file_name, args):
 
 
 def log_file_not_found_client_error(file_name, args):
-    logging.error("Error: The"
+    logging.error("Error: The path "
                   f"{file_name} does not exist\nExiting Program")
     print(f"{COLOR_RED}[ERROR]{COLOR_END}"
           f" - The file {file_name} does not exist.")
