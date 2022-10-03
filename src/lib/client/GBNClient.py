@@ -5,12 +5,14 @@ import time
 from lib.client.UDPClient import UDPClient
 import lib.client.logger as logger
 
+ROOT_FS_PATH = os.getcwd() + "/../client_fs_root/"
 
 class GBNClient(UDPClient):
     def __init__(self):
         self.socket = socket(AF_INET, SOCK_DGRAM)
 
     def start_download(self, server_ip, path, port, args):
+        complete_path = ROOT_FS_PATH + path
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
         logger.log_send_download_request(path, args)
         if response == 1:
@@ -18,7 +20,7 @@ class GBNClient(UDPClient):
             return
         logger.log_file_exists(path, args)
         last_ack = time.time()
-        with open(path, 'wb') as file:
+        with open(complete_path, 'wb') as file:
             current_seq = 1
             while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
                 if time.time() - last_ack > MAX_WAITING_TIME:
@@ -49,10 +51,10 @@ class GBNClient(UDPClient):
         logger.log_download_success(path, args)
 
     def start_upload(self, server_ip, path, port, args):
-        if not os.path.isfile(path):
-            logger.log_file_not_found_client_error(path, args)
+        complete_path = ROOT_FS_PATH + path
+        if not os.path.isfile(complete_path):
+            logger.log_file_not_found_client_error(complete_path, args)
             return
-        self.socket.connect((server_ip, port))
         response, _ = self.make_request(server_ip, path, UPLOAD)
         logger.log_send_upload_request(path, args)
         if response != 0: #error
@@ -61,16 +63,16 @@ class GBNClient(UDPClient):
 
         current_seq = 1
         logger.log_start_upload(args)
-        with open(path, 'rb') as file:
+        with open(complete_path, 'rb') as file:
             file.seek(0)
-            file_size = os.path.getsize(path)
+            file_size = os.path.getsize(complete_path)
             current_offset = 0
             while file_size > current_offset:
                 chunks_sent = 0
                 file.seek(current_offset)
-                for _ in range(GBN_WINDOW_SIZE): # FIXME: we should decide if we want to send one mor packet for each ack received or if we want to send all the packets and wait for all the acks
+                for _ in range(GBN_WINDOW_SIZE):
                     data = b''
-                    # sewuence number
+                    # sequence number
                     data += current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
 
                     chunk = file.read(MAX_PAYLOAD_SIZE)
@@ -96,7 +98,7 @@ class GBNClient(UDPClient):
                             acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
                             acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding
                             last_ack = time.time()
-                            if acknowledge >= current_seq:
+                            if acknowledge - 1 >= current_seq:
                                 break
 
                     except socket.timeout:
