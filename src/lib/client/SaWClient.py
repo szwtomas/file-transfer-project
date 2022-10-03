@@ -1,9 +1,9 @@
 import os
 from socket import SOCK_DGRAM, socket, AF_INET
-from constants import *
+from lib.client.constants import *
 import time
-from UDPClient import UDPClient
-import logger
+from lib.client.UDPClient import UDPClient
+import lib.client.logger as logger
 
 class SaWClient(UDPClient):
     def __init__(self):

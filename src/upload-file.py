@@ -1,8 +1,8 @@
 from lib.client.TCPClient import TCPClient
 from lib.client.parsing import upload_args
 from lib.client.logger import *
-from src.lib.client.GBNClient import GBNClient
-from src.lib.client.SaWClient import SaWClient
+from lib.client.GBNClient import GBNClient
+from lib.client.SaWClient import SaWClient
 
 LOG_FILE = "upload_log.txt"
 

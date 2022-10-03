@@ -1,6 +1,6 @@
 import os
 from socket import socket, AF_INET, SOCK_STREAM
-import logger
+import lib.client.logger as logger
 from lib.server.constants import CHUNK_SIZE
 from .constants import *
 
