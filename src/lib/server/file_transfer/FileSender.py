@@ -64,7 +64,7 @@ class FileSender:
         remaining_bytes = CHUNK_SIZE - 8 - len(payload)
         if remaining_bytes > 0:
             data += self.get_empty_bytes(remaining_bytes)
-            
+
         return data
 
 

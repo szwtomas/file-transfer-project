@@ -44,14 +44,20 @@ class SAWFileSender:
             print(f"Download FAILED: {e}")
         except Exception as e:
             print(f"Exception in SAWFileSender: {e}")
-    
+
+
+    def get_empty_bytes(self, amount):
+            empty = 0
+            return empty.to_bytes(amount, "big")
+
 
     def build_ack_message(self, file_size):
         data = b""
         seq_number = 0
         data += seq_number.to_bytes(4, "big")
-        data += "\x00"
+        data += b"\x00"
         data += file_size.to_bytes(4, "big")
+        data += self.get_empty_bytes(1024 - 4 - 1 - 4) # Clean programming masterclass
         return data
 
 
@@ -60,5 +66,9 @@ class SAWFileSender:
         data += seq_number.to_bytes(4, "big")
         data += len(payload).to_bytes(4, "big")
         data += payload
+        remaining_bytes = CHUNK_SIZE - 8 - len(payload)
+        if remaining_bytes > 0:
+            data += self.get_empty_bytes(remaining_bytes)
+
         return data
 
