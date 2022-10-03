@@ -23,7 +23,7 @@ class SaWClient(UDPClient):
         with open(path, 'wb') as file:
             while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
                 if time.time() - last_ack > MAX_WAITING_TIME:
-                    print("ADD LOGGER ERROR: SERVER TIMEOUT")
+                    logger.log_connection_failed()
                     return
                 try:
                     self.socket.settimeout(5)
@@ -31,10 +31,13 @@ class SaWClient(UDPClient):
                     last_ack = time.time()
                     is_error, packet_seq, payload = self.parse_download_response(response)
                 except socket.timeout:
-                    print("Server is not responding")
+                    logger.log_server_not_responding_error(args)
                     continue
-                if is_error or packet_seq != current_seq:
-                    print("Error in received packet")
+                if is_error:
+                    logger.log_max_payload_size_exceedes_error(args)
+                    ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+                elif packet_seq != current_seq:
+                    logger.log_packet_sequence_number_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 else:
                     ack = packet_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
@@ -78,7 +81,7 @@ class SaWClient(UDPClient):
                 last_ack = time.time()
                 while True:
                     if time.time() - last_ack < MAX_WAITING_TIME:
-                        print("ADD LOGGER ERROR: SERVER TIMEOUT")
+                        logger.log_connection_failed()
                         return
                     self.socket.sendto(data, (server_ip, port))
                     try:
@@ -91,7 +94,7 @@ class SaWClient(UDPClient):
                             break
 
                     except socket.timeout:
-                        print("Server is not responding")
+                        logger.log_server_not_responding_error(args)
                         continue
 
                 logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size, args)

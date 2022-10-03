@@ -89,11 +89,25 @@ def log_file_exists(file_name, args):
 ##############################################################################
 # Common errors
 
-def log_packet_sequence_number_error(verbosity, args):
+def log_packet_sequence_number_error(args):
     if args.v:
         logging.info("Packet sequence number is not correct")
-        print(f"{COLOR_RED}[INFO]{COLOR_END}"
+        print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
               " - Packet sequence number is not correct")
+
+
+def log_max_payload_size_exceedes_error(args):
+    if args.v:
+        logging.error("Packet payload size from received packet exceeded maximum size")
+        print(f"{COLOR_RED}[ERROR]{COLOR_END}"
+              " - Packet payload size from received packet exceeded maximum size")
+
+
+def log_server_not_responding_error(args):
+    if args.v:
+        logging.info("Server not responding...")
+        print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
+              " - Server not responding...")
 
 
 def log_protocol_error(protocol_name):
