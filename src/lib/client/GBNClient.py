@@ -5,6 +5,7 @@ import time
 from UDPClient import UDPClient
 import logger
 
+
 class GBNClient(UDPClient):
     def __init__(self):
         self.socket = socket(AF_INET, SOCK_DGRAM)
@@ -22,7 +23,7 @@ class GBNClient(UDPClient):
             current_seq = 1
             while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
                 if time.time() - last_ack > MAX_WAITING_TIME:
-                    print("ADD LOGGER ERROR: SERVER TIMEOUT")
+                    logger.log_connection_failed()
                     return
                 try:
                     self.socket.settimeout(5)
@@ -30,10 +31,13 @@ class GBNClient(UDPClient):
                     last_ack = time.time()
                     is_error, seq_num, payload = self.parse_download_response(response)
                 except socket.timeout:
-                    print("Server is not responding")
+                    logger.log_server_not_responding_error(args)
                     continue
-                if is_error or seq_num != current_seq:
-                    print("Error in received packet")
+                if is_error:
+                    logger.log_max_payload_size_exceedes_error(args)
+                    ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+                elif seq_num != current_seq:
+                    logger.log_packet_sequence_number_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 else:
                     ack = seq_num.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
@@ -87,7 +91,7 @@ class GBNClient(UDPClient):
                     try:
                         while True:
                             if time.time() - last_ack < MAX_WAITING_TIME:
-                                print("ADD LOGGER ERROR: SERVER TIMEOUT")
+                                logger.log_connection_failed()
                                 return
                             self.socket.settimeout(3)
                             acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
@@ -97,7 +101,7 @@ class GBNClient(UDPClient):
                                 break
 
                     except socket.timeout:
-                        print("Server is not responding")
+                        logger.log_server_not_responding_error(args)
                         continue
                     
                     if acknowledge > current_seq:
