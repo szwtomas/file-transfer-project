@@ -10,7 +10,7 @@ class GBNClient(UDPClient):
         self.socket = socket(AF_INET, SOCK_DGRAM)
 
     def start_download(self, server_ip, path, port, args):
-        self.socket.connect((server_ip, SERVER_PORT))
+        self.socket.connect((server_ip, port))
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
         logger.log_send_download_request(path, args)
         if response == 1:
@@ -41,7 +41,7 @@ class GBNClient(UDPClient):
                     file.write(payload)
                     
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
-                self.socket.sendto(ack, (server_ip, SERVER_PORT))
+                self.socket.sendto(ack, (server_ip, port))
                 logger.log_progress((file_size - (current_seq - 1) * MAX_PAYLOAD_SIZE), file_size)
         logger.log_download_success(path, args)
 
@@ -79,7 +79,7 @@ class GBNClient(UDPClient):
                     # chunk
                     data += chunk
                     data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
-                    self.socket.sendto(data, (server_ip, SERVER_PORT))
+                    self.socket.sendto(data, (server_ip, port))
                     chunks_sent += 1
 
                 last_ack = time.time()

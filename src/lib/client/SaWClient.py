@@ -10,7 +10,7 @@ class SaWClient(UDPClient):
         self.socket = socket(AF_INET, SOCK_DGRAM)
 
     def start_download(self, server_ip, path, port, args):
-        self.socket.connect((server_ip, SERVER_PORT))
+        self.socket.connect((server_ip, port))
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
         logger.log_send_download_request(path, args)
         if response == 1:
@@ -41,7 +41,7 @@ class SaWClient(UDPClient):
                     current_seq += 1
                     file.write(payload)
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
-                self.socket.sendto(ack, (server_ip, SERVER_PORT))
+                self.socket.sendto(ack, (server_ip, port))
                 logger.log_progress((file_size - (current_seq - 1) * MAX_PAYLOAD_SIZE), file_size)
         logger.log_download_success(path, args)
 
@@ -80,7 +80,7 @@ class SaWClient(UDPClient):
                     if time.time() - last_ack < MAX_WAITING_TIME:
                         print("ADD LOGGER ERROR: SERVER TIMEOUT")
                         return
-                    self.socket.sendto(data, (server_ip, SERVER_PORT))
+                    self.socket.sendto(data, (server_ip, port))
                     try:
                         self.socket.settimeout(5)
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
