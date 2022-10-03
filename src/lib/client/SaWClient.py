@@ -12,7 +12,7 @@ class SaWClient:
     def __init__(self):
         self.socket = socket(AF_INET, SOCK_DGRAM)
 
-    def start_download(self, server_ip, path):
+    def start_download(self, server_ip, path, port, args):
         self.socket.connect((server_ip, SERVER_PORT))
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
 

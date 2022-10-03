@@ -10,6 +10,19 @@ COLOR_BOLD = '\033[1m'
 COLOR_END = '\033[0m'
 
 
+##############################################################################
+# Log init
+def init_logger(logging_file):
+    logging.basicConfig(filename=logging_file,
+                        filemode='w',
+                        format="[%(asctime)s] [%(levelname)s]\n"
+                               "%(message)s",
+                        datefmt='%Y-%m-%d %H:%M:%S',
+                        level=logging.INFO)
+
+
+##############################################################################
+# Upload logs
 def log_send_upload_request(file_name, args):
     logging.info(f"Request sent to upload file: {file_name}")
     print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
@@ -28,19 +41,6 @@ def log_upload_success(file_name, args):
           f"{COLOR_END} - Uploaded {file_name} succesfully")
 
 
-def log_download_success(file_name, args):
-    logging.info("Finished downloading file")
-    print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
-          f"{COLOR_END} - Downloaded {file_name} successfully")
-
-
-def log_file_not_found_error(file_name, args):
-    logging.error("Error: The"
-                  f"{file_name} does not exist in server\nExiting Program")
-    print(f"{COLOR_RED}[ERROR]{COLOR_END}"
-          f" - The file {file_name} does not exist in server.")
-
-
 def log_file_not_found_client_error(file_name, args):
     logging.error("Error: The"
                   f"{file_name} does not exist\nExiting Program")
@@ -55,18 +55,41 @@ def log_not_enough_space_error(file_name, args):
           f" - Server does not have enough space for uploading file: {file_name}")
 
 
+##############################################################################
+# Download logs
+def log_send_download_request(file_name, args):
+    logging.info(f"Request sent to download file: {file_name}")
+    print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
+          f"{COLOR_END} - Request to download '{file_name}' sent")
+
+
+def log_download_success(file_name, args):
+    logging.info("Finished downloading file")
+    print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
+          f"{COLOR_END} - Downloaded {file_name} successfully")
+
+
+def log_file_not_found_error(file_name, args):
+    logging.error("Error: The"
+                  f"{file_name} does not exist in server\nExiting Program")
+    print(f"{COLOR_RED}[ERROR]{COLOR_END}"
+          f" - The file {file_name} does not exist in server.")
+
+
+def log_file_exists(file_name, args):
+    logging.info(f"Info: Found file {file_name} on server")
+    print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
+          f" - Found file {file_name} on server. Starting download")
+
+
+##############################################################################
+# Common errors
+
 def log_packet_sequence_number_error(verbosity, args):
     if verbosity:
         logging.info("Packet sequence number is not correct")
         print(f"{COLOR_RED}[INFO]{COLOR_END}"
               " - Packet sequence number is not correct")
-
-
-def log_file_exists(file_name, verbosity, args):
-    logging.info(f"Info: Found file {file_name} on server")
-    if verbosity:
-        print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
-              f" - Found file {file_name} on server. Starting download")
 
 
 def log_protocol_error(protocol_name):
@@ -98,15 +121,8 @@ def log_connection_failed():
           " - Connection to the server failed.")
 
 
-def init_logger(logging_file):
-    logging.basicConfig(filename=logging_file,
-                        filemode='w',
-                        format="[%(asctime)s] [%(levelname)s]\n"
-                               "%(message)s",
-                        datefmt='%Y-%m-%d %H:%M:%S',
-                        level=logging.INFO)
-
-
+##############################################################################
+# Log progress
 def log_progress(bytes_sent, total_bytes):
     percents = round(100.0 * bytes_sent / float(total_bytes), 1)
     sys.stdout.write(

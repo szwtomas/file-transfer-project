@@ -8,29 +8,37 @@ class TCPClient:
     def __init__(self):
         self.socket = socket(AF_INET, SOCK_STREAM)
     
-    def start_download(self, server_ip, path):
-        self.socket.connect((server_ip, SERVER_PORT))
+    def start_download(self, server_ip, path, port, args):
+        try:
+            self.socket.connect((server_ip, port))
+        except ConnectionRefusedError:
+            logger.log_connection_refused()
+            return
+
         self.socket.sendall(self.get_request(path, DOWNLOAD))
+        logger.log_send_download_request(path, args)
 
         response = self.socket.recv(RESPONSE_STATUS_BYTES)
         if response[0] == 0:
-            print("Download confirmed")
+            logger.log_file_exists(path, args)
             file_size = int.from_bytes(self.socket.recv(FILE_SIZE_BYTES), byteorder="big")
-            print("File size: ", file_size)
         else:
-            print("Error in download response")
+            logger.log_file_not_found_error(path, args)
             return
 
+        remaining_file_size = file_size
         with open(path, 'wb') as file:
-            while file_size > 0:
+            while remaining_file_size > 0:
                 offset = int.from_bytes(self.socket.recv(CHUNK_OFFSET_BYTES), byteorder="big")
                 chunk_size = int.from_bytes(self.socket.recv(PAYLOAD_SIZE_BYTES), byteorder="big")
                 if chunk_size > MAX_PAYLOAD_SIZE:
                     print(f"Error: chunk size exceeded maximum payload size")
                 chunk = self.socket.recv(chunk_size)
-                print(f"Received chunk: {chunk}")
                 file.write(chunk)
-                file_size -= chunk_size
+                remaining_file_size -= chunk_size
+                logger.log_progress((file_size - remaining_file_size), file_size)
+
+        logger.log_download_success(path, args)
 
     def start_upload(self, server_ip, path, port, args):
         if not os.path.isfile(path):
@@ -40,7 +48,7 @@ class TCPClient:
         try:
             self.socket.connect((server_ip, port))
         except ConnectionRefusedError:
-            logger.log_connection_refused(args)
+            logger.log_connection_refused()
             return
 
         self.socket.sendall(self.get_request(path, UPLOAD))
