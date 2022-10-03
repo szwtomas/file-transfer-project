@@ -111,9 +111,10 @@ def log_server_not_responding_error(args):
 
 
 def log_protocol_error(protocol_name):
-    logging.critical(f"Error: The protocol required: {protocol_name} does not exist\nExiting program")
+    logging.critical(f"Error: The protocol '{protocol_name}' is not valid\nExiting program")
     print(f"{COLOR_RED}[ERROR]{COLOR_END}"
-          f" - The protocol '{protocol_name}' is not valid\n"
+          f" - The protocol '{protocol_name}' is not valid,"
+          f" please choose between 'TCP', 'SAW' or 'GBN'\n"
           f"Exiting Program")
 
 
