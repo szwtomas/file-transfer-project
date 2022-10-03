@@ -59,9 +59,14 @@ class FileSender:
         print(f"Building payload message, seq number: {sequence_number}, payload: {payload}, len: {len(payload)}")
         data = b""
         data += sequence_number.to_bytes(4, "big")
-        data += len(payload).to_bytes(4, "big")
+        print(f"PAYLOAD: {payload}")
+        print(f"PAYLOAD LENGTH: {len(payload)}")
+        payload_len_bytes = len(payload).to_bytes(4, "big")
+        print(f"PAYLOAD_LEN_BYTES: {payload_len_bytes}") 
+        data += payload_len_bytes
         data += payload
         remaining_bytes = CHUNK_SIZE - 8 - len(payload)
+        print(f"REMAINING BYTES: {remaining_bytes}")
         if remaining_bytes > 0:
             data += self.get_empty_bytes(remaining_bytes)
 
@@ -74,7 +79,8 @@ class FileSender:
 
 
     def get_ack_message(self, file_size):
-        return b"\x00" + file_size.to_bytes(4, "big") + self.get_empty_bytes(1019)
+        seq_number = 0
+        return  seq_number.to_bytes(4, "big") + b"\x00" + file_size.to_bytes(4, "big") + self.get_empty_bytes(CHUNK_SIZE - 4 - 1 - 4)
 
     def send_ack_message(self, socket, file_size: int):
         '''
