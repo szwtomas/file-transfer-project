@@ -1,0 +1,5 @@
+[2022-10-03 09:41:25] [INFO]
+Request sent to download file: ./test_hola.txt
+[2022-10-03 09:41:25] [ERROR]
+Error: The./test_hola.txt does not exist in server
+Exiting Program

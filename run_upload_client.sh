@@ -5,4 +5,4 @@
 # 2. python3 upload-file.py -h
 
 cd src
-python3 upload-file.py -h
+python3 upload-file.py TCP -n test_hola.txt

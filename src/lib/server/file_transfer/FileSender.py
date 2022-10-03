@@ -2,7 +2,7 @@ import os
 from .FileTransferValidator import FileTransferValidator
 from ..sockets.TCPSocket import TCPSocket
 from ..metadata.Metadata import Metadata
-from ..constants import CHUNK_SIZE
+from ..constants import CHUNK_SIZE, FILE_SIZE_BYTES, PACKET_SEQUENCE_BYTES, PAYLOAD_SIZE_BYTES
 
 class FileSender:
 
@@ -10,7 +10,6 @@ class FileSender:
         self.fs_root = fs_root
         self.validator = FileTransferValidator()
         
-    
     def send_file(self, socket: TCPSocket, metadata: Metadata):
         '''
         Sends file to client
@@ -54,33 +53,31 @@ class FileSender:
         except Exception as e:
             print(f"Error in send_file: {e}")
 
-
     def build_payload_message(self, sequence_number: int, payload: bytes) -> bytes:
         print(f"Building payload message, seq number: {sequence_number}, payload: {payload}, len: {len(payload)}")
         data = b""
-        data += sequence_number.to_bytes(4, "big")
+        data += sequence_number.to_bytes(PACKET_SEQUENCE_BYTES, "big")
         print(f"PAYLOAD: {payload}")
         print(f"PAYLOAD LENGTH: {len(payload)}")
-        payload_len_bytes = len(payload).to_bytes(4, "big")
-        print(f"PAYLOAD_LEN_BYTES: {payload_len_bytes}") 
+        payload_len_bytes = len(payload).to_bytes(PAYLOAD_SIZE_BYTES, "big")
+        print(f"PAYLOAD_LEN_BYTES: {payload_len_bytes}")
         data += payload_len_bytes
         data += payload
-        remaining_bytes = CHUNK_SIZE - 8 - len(payload)
+        remaining_bytes = CHUNK_SIZE - len(data)
         print(f"REMAINING BYTES: {remaining_bytes}")
         if remaining_bytes > 0:
             data += self.get_empty_bytes(remaining_bytes)
 
         return data
 
-
     def get_empty_bytes(self, amount):
         empty = 0
         return empty.to_bytes(amount, "big")
 
 
-    def get_ack_message(self, file_size):
+    def get_ack_message(self, file_size: int) -> bytes:
         seq_number = 0
-        return  seq_number.to_bytes(4, "big") + b"\x00" + file_size.to_bytes(4, "big") + self.get_empty_bytes(CHUNK_SIZE - 4 - 1 - 4)
+        return  seq_number.to_bytes(PACKET_SEQUENCE_BYTES, "big") + b"\x00" + file_size.to_bytes(FILE_SIZE_BYTES, "big") + self.get_empty_bytes(CHUNK_SIZE - PACKET_SEQUENCE_BYTES - FILE_SIZE_BYTES - 1)
 
     def send_ack_message(self, socket, file_size: int):
         '''

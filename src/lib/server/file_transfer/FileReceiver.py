@@ -1,3 +1,5 @@
+from lib.client.constants import PAYLOAD_SIZE_BYTES
+from lib.server.metadata.MetadataParser import SEQ_NUMBER_BYTES
 from ..sockets.TCPSocket import TCPSocket
 from ..constants import CHUNK_SIZE
 from ..metadata.Metadata import Metadata
@@ -32,25 +34,23 @@ class FileReceiver:
             with open(path, "wb") as file:
                 print(f"About to receive file: {path}")
                 while file_size > 0:
-                    _ = int.from_bytes(socket.read_data(4), byteorder="big") # we don't need the seq number in TCP
-                    chunk_size = int.from_bytes(socket.read_data(4), byteorder="big")
+                    _ = int.from_bytes(socket.read_data(SEQ_NUMBER_BYTES), byteorder="big")
+                    chunk_size = int.from_bytes(socket.read_data(PAYLOAD_SIZE_BYTES), byteorder="big")
                     chunk = socket.read_data(chunk_size)
                     print(f"Received chunk: {chunk}")
                     file.write(chunk)
-                    file_size -= CHUNK_SIZE
+                    file_size -= chunk_size
 
         except Exception as e:
             print(f"Exception receiving file: {e}")
 
-    
     def get_empty_bytes(self, amount):
         empty = 0
         return empty.to_bytes(amount, "big")
 
-
     def send_ack_message(self, socket):
+        # we assume there is enough space to receive the file
         ack_message_btyes = self.get_empty_bytes(1024)
         print(f"Sending ack message: {ack_message_btyes}")
         socket.send_data(ack_message_btyes)
 
-    
