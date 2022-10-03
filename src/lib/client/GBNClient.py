@@ -134,7 +134,7 @@ class GBNClient:
                 except socket.timeout:
                     print("Server is not responding")
                     continue
-            return responsep[PACKET_SEQUENCE_BYTES:], file_size
+            return response[PACKET_SEQUENCE_BYTES:], file_size
 
     def parse_download_response(self, response):
         # Parse response packet and check if payload size is valid
