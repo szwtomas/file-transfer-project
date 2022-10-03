@@ -1,7 +1,8 @@
 import os
 from socket import socket, AF_INET, SOCK_STREAM
-#from constants import DOWNLOAD, FILE_SIZE_BYTES, PATH_SIZE_BYTES, RESPONSE_STATUS_BYTES, SERVER_PORT, CHUNK_SIZE_BYTES, CHUNK_OFFSET_BYTES, UPLOAD
-from .constants import *
+from constants import *
+import logger
+
 
 class TCPClient:
     def __init__(self):
@@ -31,11 +32,24 @@ class TCPClient:
                 file.write(chunk)
                 file_size -= chunk_size
 
-    def start_upload(self, server_ip, path):
-        self.socket.connect((server_ip, SERVER_PORT))
+    def start_upload(self, server_ip, path, port, args):
+        if not os.path.isfile(path):
+            logger.log_file_not_found_client_error(path, args)
+            return
+
+        try:
+            self.socket.connect((server_ip, port))
+        except ConnectionRefusedError:
+            logger.log_connection_refused(args)
+            return
+
         self.socket.sendall(self.get_request(path, UPLOAD))
+        logger.log_send_upload_request(path, args)
+
         response = self.socket.recv(RESPONSE_STATUS_BYTES)
+
         if response[0] == 0:
+            logger.log_start_upload(args)
             with open(path, 'rb') as file:
                 file_size = os.path.getsize(path)
                 bytes_sent = 0
@@ -51,9 +65,11 @@ class TCPClient:
                     data += chunk
                     self.socket.sendall(data)
                     bytes_sent += MAX_PAYLOAD_SIZE
+                    logger.log_progress(bytes_sent, file_size, args)
         else:
-            print("Error in upload response")
+            logger.log_not_enough_space_error(path, args)
             return
+        logger.log_upload_success(path, args)
 
     def get_request(self, path, operation):
         #Client First Message
@@ -67,5 +83,4 @@ class TCPClient:
         #file size
         if operation == UPLOAD:
             message += os.path.getsize(path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
-        print("sending message: ", message)
         return message

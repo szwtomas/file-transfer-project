@@ -3,6 +3,7 @@ import os
 from socket import SOCK_DGRAM, socket, AF_INET
 from constants import *
 import time
+import logger
 
 class GBNClient:
     def __init__(self):
@@ -43,8 +44,8 @@ class GBNClient:
 
                 self.socket.sendto(ack, (server_ip, SERVER_PORT))
 
-    def start_upload(self, server_ip, path):
-        self.socket.connect((server_ip, SERVER_PORT))
+    def start_upload(self, server_ip, path, port, args):
+        self.socket.connect((server_ip, port))
         response, _ = self.make_request(server_ip, path, UPLOAD)
 
         if response == 1: #error

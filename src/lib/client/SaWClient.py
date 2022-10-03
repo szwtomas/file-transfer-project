@@ -4,6 +4,7 @@ from socket import SOCK_DGRAM, socket, AF_INET
 from urllib import response
 from constants import *
 import time
+import logger
 import logging
 
 
@@ -44,8 +45,9 @@ class SaWClient:
                 ack += int(0).to_bytes(MAX_PAYLOAD_SIZE - len(ack), "big") # padding
                 self.socket.sendto(ack, (server_ip, SERVER_PORT))
 
-    def start_upload(self, server_ip, path):
-        self.socket.connect((server_ip, SERVER_PORT))
+    def start_upload(self, server_ip, path, port, args):
+        self.socket.connect((server_ip, port))
+
         response, _ = self.make_request(server_ip, path, UPLOAD)
 
         if response != 0:  # error
@@ -124,7 +126,7 @@ class SaWClient:
                 file_size = response[PACKET_SEQUENCE_BYTES:PACKET_SEQUENCE_BYTES + FILE_SIZE_BYTES] #FIXME: ta bien esto?
 
             return response[PACKET_SEQUENCE_BYTES], file_size
-        return None, 0  # add to logger that program timeouted
+        return None, 0  # add to logger.py that program timeouted
 
     def parse_download_response(self, response):
         # Parse response packet and check if payload size is valid
