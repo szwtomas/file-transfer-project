@@ -74,6 +74,7 @@ class TCPClient:
     def get_request(self, path, operation):
         #Client First Message
         message = b""
+    
         #operation
         message += operation.to_bytes(1, byteorder="big")
         #path size

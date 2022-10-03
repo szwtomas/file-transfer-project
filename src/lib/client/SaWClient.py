@@ -29,7 +29,7 @@ class SaWClient:
                     return
                 try:
                     self.socket.settimeout(5)
-                    response, _ = self.socket.recvfrom(MAX_PAYLOAD_SIZE)
+                    response, _ = self.socket.recvfrom(PACKET_SIZE)
                     last_ack = time.time()
                     is_error, packet_seq, payload = self.parse_download_response(response)
                 except socket.timeout:
@@ -37,12 +37,12 @@ class SaWClient:
                     continue
                 if is_error or packet_seq != current_seq:
                     print("Error in received packet")
-                    ack = packet_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
-                else:
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+                else:
+                    ack = packet_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     current_seq += 1
                     file.write(payload)
-                ack += int(0).to_bytes(MAX_PAYLOAD_SIZE - len(ack), "big") # padding
+                ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
                 self.socket.sendto(ack, (server_ip, SERVER_PORT))
 
     def start_upload(self, server_ip, path, port, args):
@@ -68,7 +68,7 @@ class SaWClient:
                 data += len(chunk).to_bytes(PAYLOAD_SIZE_BYTES, byteorder="big")
                 # chunk
                 data += chunk
-                data += int(0).to_bytes(MAX_PAYLOAD_SIZE - len(data), "big") # padding
+                data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
                 
                 last_ack = time.time()
                 while True:
@@ -78,7 +78,7 @@ class SaWClient:
                     self.socket.sendto(data, (server_ip, SERVER_PORT))
                     try:
                         self.socket.settimeout(5)
-                        acknowledge, _ = self.socket.recvfrom(MAX_PAYLOAD_SIZE)
+                        acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
                         acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding
                         last_ack = time.time()
                         if current_seq == int.from_bytes(acknowledge, byteorder="big"):
@@ -95,7 +95,7 @@ class SaWClient:
         message = b""
         # packet sequence
         packet_seq = 0
-        message += packet_seq.to_bytes(4, byteorder="big")
+        message += packet_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
         # operation
         message += bytes(type)
         # path size
@@ -105,7 +105,7 @@ class SaWClient:
         # file size
         if type == UPLOAD:
             message += os.path.getsize(path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
-        message += int(0).to_bytes(MAX_PAYLOAD_SIZE - len(message), "big") # padding
+        message += int(0).to_bytes(PACKET_SIZE - len(message), "big") # padding
         return message
 
     def make_request(self, server_ip, path, type):
@@ -115,7 +115,7 @@ class SaWClient:
             self.socket.sendto(self.get_request(path, type), (server_ip, SERVER_PORT))
             try:
                 self.socket.settimeout(1)
-                response, _ = self.socket.recvfrom(MAX_PAYLOAD_SIZE)
+                response, _ = self.socket.recvfrom(PACKET_SIZE)
                 if not int.from_bytes(response[:PACKET_SEQUENCE_BYTES]) == 0:
                     start_timer = time.time()
                     continue

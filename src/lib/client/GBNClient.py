@@ -19,15 +19,14 @@ class GBNClient:
 
         last_ack = time.time()
         with open(path, 'wb') as file:
-            current_offset = 0
             current_seq = 1
-            while file_size > current_offset:
+            while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
                 if time.time() - last_ack > MAX_WAITING_TIME:
                     print("ADD LOGGER ERROR: SERVER TIMEOUT")
                     return
                 try:
                     self.socket.settimeout(5)
-                    response = self.socket.recvfrom(GBN_CHUNK_SIZE)
+                    response, _ = self.socket.recvfrom(PACKET_SIZE)
                     last_ack = time.time()
                     is_error, seq_num, payload = self.parse_download_response(response)
                 except socket.timeout:
@@ -35,13 +34,13 @@ class GBNClient:
                     continue
                 if is_error or seq_num != current_seq:
                     print("Error in received packet")
-                    ack = seq_num.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
-                else:
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
-                    current_offset += MAX_PAYLOAD_SIZE
+                else:
+                    ack = seq_num.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     current_seq += 1
                     file.write(payload)
-
+                    
+                ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
                 self.socket.sendto(ack, (server_ip, SERVER_PORT))
 
     def start_upload(self, server_ip, path, port, args):
@@ -73,6 +72,7 @@ class GBNClient:
                     data += len(chunk).to_bytes(PAYLOAD_SIZE_BYTES, byteorder="big")
                     # chunk
                     data += chunk
+                    data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
                     self.socket.sendto(data, (server_ip, SERVER_PORT))
                     chunks_sent += 1
 
@@ -84,7 +84,8 @@ class GBNClient:
                                 print("ADD LOGGER ERROR: SERVER TIMEOUT")
                                 return
                             self.socket.settimeout(3)
-                            acknowledge = self.socket.recvfrom(PACKET_SEQUENCE_BYTES)
+                            acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
+                            acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding
                             last_ack = time.time()
                             if acknowledge >= current_seq:
                                 break
@@ -98,20 +99,21 @@ class GBNClient:
                         current_offset += MAX_PAYLOAD_SIZE
                 
     def get_request(self, path, type):
-        #Client First Message
+        # Client First Message
         message = b""
-        #packet sequence number
-        seq_num = 0
-        message += seq_num.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
-        #operation
+        # packet sequence
+        packet_seq = 0
+        message += packet_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+        # operation
         message += bytes(type)
-        #path size
+        # path size
         message += len(path).to_bytes(PATH_SIZE_BYTES, byteorder="big")
-        #path
+        # path
         message += path.encode("UTF-8")
-        #file size
+        # file size
         if type == UPLOAD:
             message += os.path.getsize(path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
+        message += int(0).to_bytes(PACKET_SIZE - len(message), "big") # padding
         return message
 
     def make_request(self, server_ip, path, type):
@@ -121,21 +123,18 @@ class GBNClient:
             self.socket.sendto(self.get_request(path, type), (server_ip, SERVER_PORT))
             try:
                 self.socket.settimeout(1)
-                response = self.socket.recvfrom(PACKET_SEQUENCE_BYTES + RESPONSE_STATUS_BYTES)
-                if int.from_bytes(response[:PACKET_SEQUENCE_BYTES]) != 0:
+                response, _ = self.socket.recvfrom(PACKET_SIZE)
+                if not int.from_bytes(response[:PACKET_SEQUENCE_BYTES]) == 0:
                     start_timer = time.time()
                     continue
             except socket.timeout:
                 print("Server is not responding")
                 continue
             if type == DOWNLOAD and response[PACKET_SEQUENCE_BYTES] == 0:
-                try:
-                    self.socket.settimeout(1)
-                    file_size = self.socket.recvfrom(FILE_SIZE_BYTES)
-                except socket.timeout:
-                    print("Server is not responding")
-                    continue
-            return response[PACKET_SEQUENCE_BYTES:], file_size
+                file_size = response[PACKET_SEQUENCE_BYTES:PACKET_SEQUENCE_BYTES + FILE_SIZE_BYTES] #FIXME: ta bien esto?
+
+            return response[PACKET_SEQUENCE_BYTES], file_size
+        return None, 0  # add to logger that program timeouted
 
     def parse_download_response(self, response):
         # Parse response packet and check if payload size is valid
