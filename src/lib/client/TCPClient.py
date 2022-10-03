@@ -50,9 +50,10 @@ class TCPClient:
                 print(f"Received payload: {payload}")
                 file.write(payload)
                 file_size -= payload_size
+        logger.log_download_success(path, args)
 
 
-        self.socket.sendall(self.get_request(path, UPLOAD))
+        """self.socket.sendall(self.get_request(path, UPLOAD))
         logger.log_send_upload_request(path, args)
 
         response = self.socket.recv(RESPONSE_STATUS_BYTES)
@@ -78,7 +79,7 @@ class TCPClient:
         else:
             logger.log_not_enough_space_error(path, args)
             return
-        logger.log_upload_success(path, args)
+        logger.log_upload_success(path, args)"""
 
 
     def get_request(self, path, operation):

@@ -24,14 +24,14 @@ def init_logger(logging_file):
 ##############################################################################
 # Upload logs
 def log_send_upload_request(file_name, args):
-    if args.v:
+    if args.verbose:
         logging.info(f"Request sent to upload file: {file_name}")
         print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
               f"{COLOR_END} - Request to upload '{file_name}' sent")
 
 
 def log_start_upload(args):
-    if not args.q:
+    if not args.quiet:
         logging.info(f"Starting uploading...")
         print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
               f"{COLOR_END} - Starting uploading...")
@@ -60,7 +60,7 @@ def log_not_enough_space_error(file_name, args):
 ##############################################################################
 # Download logs
 def log_send_download_request(file_name, args):
-    if args.v:
+    if args.verbose:
         logging.info(f"Request sent to download file: {file_name}")
         print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
               f"{COLOR_END} - Request to download '{file_name}' sent")
@@ -80,7 +80,7 @@ def log_file_not_found_error(file_name, args):
 
 
 def log_file_exists(file_name, args):
-    if not args.q:
+    if not args.quiet:
         logging.info(f"Info: Found file {file_name} on server")
         print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
               f" - Found file {file_name} on server. Starting download")
@@ -90,21 +90,21 @@ def log_file_exists(file_name, args):
 # Common errors
 
 def log_packet_sequence_number_error(args):
-    if args.v:
+    if args.verbose:
         logging.info("Packet sequence number is not correct")
         print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
               " - Packet sequence number is not correct")
 
 
 def log_max_payload_size_exceedes_error(args):
-    if args.v:
+    if args.verbose:
         logging.error("Packet payload size from received packet exceeded maximum size")
         print(f"{COLOR_RED}[ERROR]{COLOR_END}"
               " - Packet payload size from received packet exceeded maximum size")
 
 
 def log_server_not_responding_error(args):
-    if args.v:
+    if args.verbose:
         logging.info("Server not responding...")
         print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
               " - Server not responding...")

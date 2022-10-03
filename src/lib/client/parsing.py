@@ -36,7 +36,7 @@ def download_args():
                         "--dst",
                         metavar="",
                         type=str,
-                        default="./",
+                        default="",
                         help="destination file path")
 
     parser.add_argument("-n",
