@@ -4,6 +4,7 @@ import time
 from lib.client.constants import *
 #from constants import DOWNLOAD, FILE_SIZE_BYTES, MAX_PAYLOAD_SIZE, MAX_WAITING_TIME, PACKET_SEQUENCE_BYTES, PACKET_SIZE, PATH_SIZE_BYTES, PAYLOAD_SIZE_BYTES, SERVER_PORT, UPLOAD
 
+ROOT_FS_PATH = os.getcwd() + "/../client_fs_root/"
 
 class UDPClient:
     '''This class is only used as parent class for SaWClient and GBNClient'''
@@ -20,13 +21,14 @@ class UDPClient:
         # path
         message += path.encode("UTF-8")
         # file size
-        if type == UPLOAD:
-            message += os.path.getsize(path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
+        if operation == UPLOAD:
+            message += os.path.getsize(ROOT_FS_PATH + path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
         message += int(0).to_bytes(PACKET_SIZE - len(message), "big") # padding
+        print(f"request {message}")
         return message
 
     def make_request(self, server_ip, path, type):
-        file_size = 0
+        file_size = int(0).to_bytes(FILE_SIZE_BYTES, byteorder="big")
         start_timer = time.time()
         while time.time() - start_timer < MAX_WAITING_TIME:
             self.socket.sendto(self.get_request(path, type), (server_ip, SERVER_PORT))

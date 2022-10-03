@@ -16,8 +16,8 @@ class SAWFileReceiver:
 
     def receive_file(self, metadata):
         path = f"{self.fs_root}/{metadata.get_path()}"
-        self.verify_path(path)
         file_size = metadata.get_file_size()
+        print('verify file size')
         self.verify_file_size(file_size)
         ack = build_ack_message(file_size)
         self.send_message(ack)
@@ -27,13 +27,14 @@ class SAWFileReceiver:
                 print(f"About to receive file: {path}")
                 while file_size > 0:
                     packet = self.read_message()
+                    print(f"PACKET {packet}")
                     seq_number = int.from_bytes(packet[:PACKET_SEQUENCE_BYTES], byteorder="big")
                     if seq_number == 0:
                         ack = build_ack_message(file_size)
                         self.send_message(ack)
                         continue
                     # chequear que el seguence number sea el esperado
-                    if seq_number != current_seq + 1:
+                    if seq_number != current_seq:
                         ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, "big")
                     else:
                         current_seq += 1

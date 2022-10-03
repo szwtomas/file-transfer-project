@@ -1,4 +1,4 @@
-[2022-10-03 17:14:12] [INFO]
+[2022-10-03 17:21:14] [INFO]
 Info: Found file fotito.jpg on server
-[2022-10-03 17:14:12] [INFO]
+[2022-10-03 17:21:15] [INFO]
 Finished downloading file

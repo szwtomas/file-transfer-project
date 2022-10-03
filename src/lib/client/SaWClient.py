@@ -5,6 +5,8 @@ import time
 from lib.client.UDPClient import UDPClient
 import lib.client.logger as logger
 
+ROOT_FS_PATH = os.getcwd() + "/../client_fs_root/"
+
 class SaWClient(UDPClient):
     def __init__(self):
         self.socket = socket(AF_INET, SOCK_DGRAM)
@@ -50,11 +52,10 @@ class SaWClient(UDPClient):
         logger.log_download_success(path, args)
 
     def start_upload(self, server_ip, path, port, args):
-        if not os.path.isfile(path):
+        complete_path = ROOT_FS_PATH + path
+        if not os.path.isfile(complete_path):
             logger.log_file_not_found_client_error(path, args)
             return
-
-        self.socket.connect((server_ip, port))
 
         response, _ = self.make_request(server_ip, path, UPLOAD)
         logger.log_send_upload_request(path, args)
@@ -63,10 +64,11 @@ class SaWClient(UDPClient):
             logger.log_not_enough_space_error(path, args)
             return
 
+        print("UPLOADING")
         current_seq = 1
         logger.log_start_upload(args)
-        with open(path, 'rb') as file:
-            file_size = os.path.getsize(path)
+        with open(complete_path, 'rb') as file:
+            file_size = os.path.getsize(complete_path)
             while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
                 data = b''
                 # packet sequence number
@@ -79,12 +81,17 @@ class SaWClient(UDPClient):
                 data += chunk
                 data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
                 
+                print(f"data {data}")
+
                 last_ack = time.time()
                 while True:
-                    if time.time() - last_ack < MAX_WAITING_TIME:
+                    if time.time() - last_ack > MAX_WAITING_TIME:
+                        print("ya me morí")
                         logger.log_connection_failed()
                         return
+                    print('lo vamos a enviar')
                     self.socket.sendto(data, (server_ip, port))
+                    print('lo enviamos')
                     try:
                         self.socket.settimeout(5)
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
@@ -98,5 +105,5 @@ class SaWClient(UDPClient):
                         logger.log_server_not_responding_error(args)
                         continue
 
-                logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size, args)
+                logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size)
         logger.log_upload_success(path, args)
