@@ -6,11 +6,9 @@ from ..metadata.Metadata import Metadata
 from .FileTransferValidator import FileTransferValidator
 
 class FileReceiver:
-
     def __init__(self, fs_root):
         self.fs_root = fs_root
         self.validator = FileTransferValidator()
-
 
     def receive_file(self, socket: TCPSocket, metadata: Metadata):
         '''

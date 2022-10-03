@@ -67,7 +67,6 @@ class FileSender:
         print(f"REMAINING BYTES: {remaining_bytes}")
         if remaining_bytes > 0:
             data += self.get_empty_bytes(remaining_bytes)
-
         return data
 
     def get_empty_bytes(self, amount):

@@ -29,8 +29,8 @@ Server first response Message:
 **_Data messages_**:
 
 - 4 bytes: Sequence number
-- 4 bytes: size of the chunk
-- chunk_size bytes: payload
+- 4 bytes: payload_size
+- (payload_size) bytes: payload
 
 **_ACK_**:
 
