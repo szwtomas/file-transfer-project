@@ -1,7 +1,6 @@
 import os
-from tkinter import Pack
 
-from constants import MAX_PAYLOAD_SIZE, PACKET_SEQUENCE_BYTES, PACKET_SIZE, PAYLOAD_SIZE_BYTES
+from ..constants import MAX_PAYLOAD_SIZE, PACKET_SEQUENCE_BYTES, PACKET_SIZE, PAYLOAD_SIZE_BYTES
 from ..file_transfer.FileTransferValidator import FileTransferValidator
 from .message_utils import build_ack_message, get_empty_bytes, send_message_until_acked
 from ..constants import CHUNK_SIZE
@@ -19,16 +18,19 @@ class SAWFileSender:
 
 
     def send_file(self, metadata):
-
+        print("sending file")
         file_path = os.path.join(self.fs_root, metadata.get_path())
         print("About to validate path:")
         if not os.path.exists(file_path):
-            ack_message = build_ack_message(file_size, True)
+            ack_message = build_ack_message(0, True)
             self.send_message(ack_message)
             raise FileNotFoundError(f"File {file_path} does not exist")
         print("Path validated")
         file_size = os.path.getsize(file_path)
+        print(f'EL ARHCIVO QUE LEO ES {file_path} y es size es {file_size}')
         ack_message = build_ack_message(file_size)
+        print(ack_message)
+        print("voy a enviar")
         self.send_message(ack_message)
         current_seq_number = 1
         operation_retries_count = 0

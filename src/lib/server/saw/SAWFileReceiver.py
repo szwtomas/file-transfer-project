@@ -1,4 +1,5 @@
 import os
+from re import A
 
 from lib.server.saw.message_utils import build_ack_message
 from ..exceptions.InvalidPathException import InvalidPathException
@@ -20,17 +21,29 @@ class SAWFileReceiver:
         self.verify_file_size(file_size)
         ack = build_ack_message(file_size)
         self.send_message(ack)
+        current_seq = 1
         try:
             with open(path, "wb") as file:
                 print(f"About to receive file: {path}")
                 while file_size > 0:
-                    # _ = int.from_bytes(socket.read_data(SEQ_NUMBER_BYTES), byteorder="big")
-                    # chunk_size = int.from_bytes(socket.read_data(PAYLOAD_SIZE_BYTES), byteorder="big")
-                    # chunk = socket.read_data(chunk_size)
                     packet = self.read_message()
-                    
-                    file.write(chunk)
-                    file_size -= chunk_size
+                    seq_number = int.from_bytes(packet[:PACKET_SEQUENCE_BYTES], byteorder="big")
+                    if seq_number == 0:
+                        ack = build_ack_message(file_size)
+                        self.send_message(ack)
+                        continue
+                    # chequear que el seguence number sea el esperado
+                    if seq_number != current_seq + 1:
+                        ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, "big")
+                    else:
+                        current_seq += 1
+                        ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, "big")
+                        chunk_size = int.from_bytes(packet[PACKET_SEQUENCE_BYTES:PACKET_SEQUENCE_BYTES + 4], byteorder="big")
+                        chunk = packet[PACKET_SEQUENCE_BYTES + 4:PACKET_SEQUENCE_BYTES + 4 + chunk_size]
+                        file.write(chunk)
+                        file_size -= chunk_size
+                    ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big")
+                    self.send_message(ack)
 
         except Exception as e:
             print(f"Exception receiving file: {e}")

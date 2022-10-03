@@ -1,5 +1,5 @@
-from UDPAcceptor import UDPAcceptor
-from sockets.UDPSocket import create_udp_socket
+from .UDPAcceptor import UDPAcceptor
+from .sockets.UDPSocket import create_udp_socket
 
 class SAWServer():
 
@@ -16,3 +16,4 @@ class SAWServer():
         address = (self.host, self.port)
         self.socket.bind(address)
         self.udp_acceptor = UDPAcceptor(self.host, self.port, self.fs_root, self.socket)
+        self.udp_acceptor.start()

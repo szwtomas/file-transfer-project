@@ -1,13 +1,14 @@
-from server.Acceptor import ACCEPT_TIMEOUT_IN_SECONDS
 from socket import timeout
-from UDPConnection import UDPConnection
+from .UDPConnection import UDPConnection
+import threading
 
 ACCEPT_TIMEOUT_IN_SECONDS = 3
 MAX_BUF_SIZE = 1024
 
-class UDPAcceptor:
+class UDPAcceptor(threading.Thread):
 
     def __init__(self, host, port, fs_root, socket):
+        threading.Thread.__init__(self)
         self.host = host
         self.port = port
         self.fs_root = fs_root
@@ -40,5 +41,5 @@ class UDPAcceptor:
 
 
     def remove_dead_connections(self):
-        # TODO: Iterate all connectiond and check last message time and remove dead connections or something
+        # TODO: Iterate all connections and check last message time and remove dead connections or something
         return True

@@ -7,14 +7,14 @@ from lib.client.constants import *
 
 class UDPClient:
     '''This class is only used as parent class for SaWClient and GBNClient'''
-    def get_request(self, path, type):
+    def get_request(self, path, operation):
         # Client First Message
         message = b""
         # packet sequence
         packet_seq = 0
         message += packet_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
         # operation
-        message += bytes(type)
+        message += operation.to_bytes(OPERATION_BYTES, byteorder="big")
         # path size
         message += len(path).to_bytes(PATH_SIZE_BYTES, byteorder="big")
         # path
@@ -33,16 +33,16 @@ class UDPClient:
             try:
                 self.socket.settimeout(1)
                 response, _ = self.socket.recvfrom(PACKET_SIZE)
-                if not int.from_bytes(response[:PACKET_SEQUENCE_BYTES]) == 0:
+                if not int.from_bytes(response[:PACKET_SEQUENCE_BYTES], "big") == 0:
                     start_timer = time.time()
                     continue
             except socket.timeout:
                 print("Server is not responding")
                 continue
             if type == DOWNLOAD and response[PACKET_SEQUENCE_BYTES] == 0:
-                file_size = response[PACKET_SEQUENCE_BYTES:PACKET_SEQUENCE_BYTES + FILE_SIZE_BYTES] #FIXME: ta bien esto?
+                file_size = response[PACKET_SEQUENCE_BYTES + OPERATION_BYTES:PACKET_SEQUENCE_BYTES + 1 + FILE_SIZE_BYTES] #FIXME: ta bien esto? no
 
-            return response[PACKET_SEQUENCE_BYTES], file_size
+            return response[PACKET_SEQUENCE_BYTES], int.from_bytes(file_size, byteorder="big")
         return None, 0  # FIXME: add to logger that program timeouted
     
     def parse_download_response(self, response):

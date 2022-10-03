@@ -11,7 +11,6 @@ class GBNClient(UDPClient):
         self.socket = socket(AF_INET, SOCK_DGRAM)
 
     def start_download(self, server_ip, path, port, args):
-        self.socket.connect((server_ip, port))
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
         logger.log_send_download_request(path, args)
         if response == 1:
@@ -40,8 +39,8 @@ class GBNClient(UDPClient):
                     logger.log_packet_sequence_number_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 else:
-                    ack = seq_num.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     current_seq += 1
+                    ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     file.write(payload)
                     
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding

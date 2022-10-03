@@ -1,27 +1,41 @@
+# from concurrent.futures import thread
 import threading
 from collections import deque
+import time
+
+from lib.client.constants import MAX_WAITING_TIME
 from .saw.message_utils import read_until_expected_seq_number
 from lib.server.exceptions.MetadataParseException import MetadataParseException
 from .metadata.MetadataParser import MetadataParser
 from .exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedException
 from .saw.SAWFileSender import SAWFileSender
+from lib.server.saw.SAWFileReceiver import SAWFileReceiver
 
 class UDPConnection(threading.Thread):
 
     def __init__(self, client_address, socket, fs_root):
+        threading.Thread.__init__(self)
         self.client_address = client_address
         self.socket = socket
         self.fs_root = fs_root
         self.message_queue = deque()
         self.metadata_parser = MetadataParser()
-        self.file_sender = SAWFileSender(fs_root, lambda: self.read_message_from_queue(), lambda: self.send_message_to_client())
+        self.file_sender = SAWFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
+        self.file_receiver = SAWFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
 
-
-    def read_message_from_queue(self):
-        return self.message_queue.popleft()
-
+    def read_message_from_queue(self): # si queremos que sea bloqueante tiene que estar en while
+        print("espero a leer mensaje")
+        timer = time.time()
+        while True:
+            if time.time() - timer > MAX_WAITING_TIME:
+                raise UDPMessageNotReceivedException("Timeout")
+            if len(self.message_queue) > 0:
+                print("desencolo mensaje")
+                return self.message_queue.popleft()
+            time.sleep(0.01)
 
     def enqueue_message(self, message):
+        print("encolo mensaje")
         self.message_queue.append(message)
 
 
@@ -31,10 +45,11 @@ class UDPConnection(threading.Thread):
 
     def handle_connection(self):
         try:
+            print("Handling connection")
             initial_message = read_until_expected_seq_number(lambda: self.read_message_from_queue(), 0)
-            metadata = self.metadata_parser.parse_metadata(initial_message)
+            metadata = self.metadata_parser.parse(initial_message)
             print(f"Metadata received from client {self.client_address}: {metadata}")
-            if metadata.is_download():
+            if metadata.get_is_download():
                 self.handle_download(metadata)
             else:
                 self.handle_upload(metadata)
@@ -48,25 +63,27 @@ class UDPConnection(threading.Thread):
 
 
     def get_initial_message(self):
+        initial_message = self.read_message_from_queue()
+        print(f"Initial message: {initial_message}")
+        retries = 0 # TODO: Use timers instead of retries
+        MAX_RETRIES = 10
+        while not self.is_metadata_message(initial_message) and retries < MAX_RETRIES:
             initial_message = self.read_message_from_queue()
-            print(f"Initial message: {initial_message}")
-            retries = 0 # TODO: Use timers instead of retries
-            MAX_RETRIES = 10
-            while not self.is_metadata_message(initial_message) and retries < MAX_RETRIES:
-                initial_message = self.read_message_from_queue()
-                retries += 1
-            
-            return initial_message
+            retries += 1
+        
+        return initial_message
 
 
     def handle_download(self, metadata):
         print(f"Handling download for metadata: {metadata}")
+        self.file_sender.send_file(metadata)
     
+    def handle_upload(self, metadata):
+        print(f"Handling upload for metadata: {metadata}")
+        self.file_receiver.receive_file(metadata)
 
     def is_metadata_message(self, data):
-        return int.from_bytes(data[0:4]) == 0
-
+        return int.from_bytes(data[0:4], "big") == 0
 
     def send_message_to_client(self, data):
         self.socket.sendto(data, self.client_address)
-

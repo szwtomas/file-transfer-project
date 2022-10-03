@@ -10,8 +10,9 @@ class SaWClient(UDPClient):
         self.socket = socket(AF_INET, SOCK_DGRAM)
 
     def start_download(self, server_ip, path, port, args):
-        self.socket.connect((server_ip, port))
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
+        print(response)
+        print(file_size)
         logger.log_send_download_request(path, args)
         if response == 1:
             logger.log_file_not_found_error(path, args)
@@ -40,8 +41,8 @@ class SaWClient(UDPClient):
                     logger.log_packet_sequence_number_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 else:
-                    ack = packet_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     current_seq += 1
+                    ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     file.write(payload)
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
                 self.socket.sendto(ack, (server_ip, port))
@@ -89,7 +90,7 @@ class SaWClient(UDPClient):
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
                         acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding
                         last_ack = time.time()
-                        if current_seq == int.from_bytes(acknowledge, byteorder="big"):
+                        if current_seq + 1 == int.from_bytes(acknowledge, byteorder="big"):
                             current_seq += 1
                             break
 
