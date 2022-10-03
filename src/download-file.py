@@ -1,8 +1,8 @@
 from lib.client.TCPClient import TCPClient
 from lib.client.parsing import download_args
-from src.lib.client.GBNClient import GBNClient
-from src.lib.client.SaWClient import SaWClient
-from src.lib.client.logger import *
+from lib.client.GBNClient import GBNClient
+from lib.client.SaWClient import SaWClient
+from lib.client.logger import *
 
 LOG_FILE = "download_log.txt"
 
@@ -10,7 +10,7 @@ LOG_FILE = "download_log.txt"
 def main(args):
     init_logger(LOG_FILE)
 
-    path = args.src + args.name
+    path = args.dst + args.name
 
     if args.protocol == "TCP":
         tcp_client = TCPClient()

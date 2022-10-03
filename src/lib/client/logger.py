@@ -113,7 +113,7 @@ def log_server_not_responding_error(args):
 def log_protocol_error(protocol_name):
     logging.critical(f"Error: The protocol required: {protocol_name} does not exist\nExiting program")
     print(f"{COLOR_RED}[ERROR]{COLOR_END}"
-          f" - The protocol required: {protocol_name} does not exist\nExiting program - "
+          f" - The protocol '{protocol_name}' is not valid\n"
           f"Exiting Program")
 
 
