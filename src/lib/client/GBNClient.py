@@ -12,11 +12,11 @@ class GBNClient:
     def start_download(self, server_ip, path, port, args):
         self.socket.connect((server_ip, SERVER_PORT))
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
-
+        logger.log_send_download_request(path, args)
         if response == 1:
-            print("File not found")
+            logger.log_file_not_found_error(path, args)
             return
-
+        logger.log_file_exists(path, args)
         last_ack = time.time()
         with open(path, 'wb') as file:
             current_seq = 1
@@ -42,16 +42,22 @@ class GBNClient:
                     
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
                 self.socket.sendto(ack, (server_ip, SERVER_PORT))
+                logger.log_progress((file_size - (current_seq - 1) * MAX_PAYLOAD_SIZE), file_size)
+        logger.log_download_success(path, args)
 
     def start_upload(self, server_ip, path, port, args):
+        if not os.path.isfile(path):
+            logger.log_file_not_found_client_error(path, args)
+            return
         self.socket.connect((server_ip, port))
         response, _ = self.make_request(server_ip, path, UPLOAD)
-
-        if response == 1: #error
-            print("Error in upload response")
+        logger.log_send_upload_request(path, args)
+        if response != 0: #error
+            logger.log_not_enough_space_error(path, args)
             return
 
         current_seq = 1
+        logger.log_start_upload(args)
         with open(path, 'rb') as file:
             file.seek(0)
             file_size = os.path.getsize(path)
@@ -97,6 +103,8 @@ class GBNClient:
                     if acknowledge > current_seq:
                         current_seq += 1
                         current_offset += MAX_PAYLOAD_SIZE
+                logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size, args)
+        logger.log_upload_complete(args)
                 
     def get_request(self, path, type):
         # Client First Message

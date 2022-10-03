@@ -15,11 +15,12 @@ class SaWClient:
     def start_download(self, server_ip, path, port, args):
         self.socket.connect((server_ip, SERVER_PORT))
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
-
+        logger.log_send_download_request(path, args)
         if response == 1:
-            print("File not found")
+            logger.log_file_not_found_error(path, args)
             return
 
+        logger.log_file_exists(path, args)
         current_seq = 1
         last_ack = time.time()
         with open(path, 'wb') as file:
@@ -44,21 +45,28 @@ class SaWClient:
                     file.write(payload)
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
                 self.socket.sendto(ack, (server_ip, SERVER_PORT))
-
+                logger.log_progress((file_size - (current_seq - 1) * MAX_PAYLOAD_SIZE), file_size)
+        logger.log_download_success(path, args)
+        
     def start_upload(self, server_ip, path, port, args):
+        if not os.path.isfile(path):
+            logger.log_file_not_found_client_error(path, args)
+            return
+
         self.socket.connect((server_ip, port))
 
         response, _ = self.make_request(server_ip, path, UPLOAD)
+        logger.log_send_upload_request(path, args)
 
         if response != 0:  # error
-            print("Error in upload response")
+            logger.log_not_enough_space_error(path, args)
             return
 
         current_seq = 1
+        logger.log_start_upload(args)
         with open(path, 'rb') as file:
             file_size = os.path.getsize(path)
             while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
-
                 data = b''
                 # packet sequence number
                 data += current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
@@ -89,6 +97,8 @@ class SaWClient:
                         print("Server is not responding")
                         continue
 
+                logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size, args)
+        logger.log_upload_success(path, args)
 
     def get_request(self, path, type):
         # Client First Message
