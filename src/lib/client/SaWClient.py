@@ -30,7 +30,7 @@ class SaWClient(UDPClient):
                     logger.log_connection_failed()
                     return
                 try:
-                    self.socket.settimeout(0.5)
+                    self.socket.settimeout(1)
                     response, _ = self.socket.recvfrom(PACKET_SIZE)
                     last_ack = time.time()
                     is_error, packet_seq, payload = self.parse_download_response(response)
@@ -92,7 +92,7 @@ class SaWClient(UDPClient):
                     self.socket.sendto(data, (server_ip, port))
                     logger.log_packet_seq_number(current_seq, args)
                     try:
-                        self.socket.settimeout(0.5)
+                        self.socket.settimeout(1)
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
                         acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding
                         last_ack = time.time()

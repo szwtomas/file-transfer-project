@@ -32,7 +32,6 @@ class UDPConnection(threading.Thread):
             print(f"Protocol {protocol} not supported")
             #FIXME: logear
 
-        
 
     def read_message_from_queue(self): # si queremos que sea bloqueante tiene que estar en while
         print("espero a leer mensaje")
@@ -43,7 +42,7 @@ class UDPConnection(threading.Thread):
             if len(self.message_queue) > 0:
                 print("desencolo mensaje")
                 return self.message_queue.popleft()
-            # time.sleep(0.01)
+            time.sleep(0.15)
 
     def enqueue_message(self, message):
         print("encolo mensaje")
