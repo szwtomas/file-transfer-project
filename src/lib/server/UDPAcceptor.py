@@ -3,7 +3,7 @@ from .UDPConnection import UDPConnection
 import threading
 
 ACCEPT_TIMEOUT_IN_SECONDS = 0.5
-MAX_BUF_SIZE = 1024
+MAX_BUF_SIZE = 4096
 
 class UDPAcceptor(threading.Thread):
 

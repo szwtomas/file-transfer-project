@@ -1,0 +1,4 @@
+[2022-10-04 02:38:26] [INFO]
+Starting uploading...
+[2022-10-04 02:39:56] [INFO]
+Finished uploading file: prueba.txt

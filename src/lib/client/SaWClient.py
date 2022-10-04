@@ -38,6 +38,8 @@ class SaWClient(UDPClient):
                     print('responce', response[:16])
                     last_ack = time.time()
                     is_error, packet_seq, payload = self.parse_download_response(response)
+                    print("NOS LLEGA EL PAQUETE", packet_seq)
+                    print("esperabamos el paquete", current_seq)
                 except timeout:
                     print('dio timeout, mando ack nuevo', current_seq)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
@@ -49,12 +51,16 @@ class SaWClient(UDPClient):
                     logger.log_max_payload_size_exceedes_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 elif packet_seq < current_seq:
+                    print("ENTRO AL IF 1")
                     logger.log_packet_sequence_number_error(args)
+                    continue
                 elif packet_seq > current_seq:
+                    print("ENTRO AL IF 2")
                     logger.log_packet_sequence_number_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 else:
                     current_seq += 1
+                    print("AVANZO lo que recibi avanzaba, mando ack", current_seq)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     file.write(payload)
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding

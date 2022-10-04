@@ -21,7 +21,7 @@ def read_until_expected_seq_number(read_message, expected_seq_number):
     return message
 
 def _get_seq_number_from_message(data):
-    return int.from_bytes(data[0:4], "big")
+    return int.from_bytes(data[:PACKET_SEQUENCE_BYTES], "big")
 
 
 def send_message_until_acked(read_message, send_message, seq_number, data):
@@ -29,8 +29,8 @@ def send_message_until_acked(read_message, send_message, seq_number, data):
     max_retries = 10
     while retry_count < max_retries:
         print('envio data')
-        for i in range(10):
-            send_message(data)
+        # for i in range(3):
+        send_message(data)
         try:
             data = read_until_expected_seq_number(read_message, seq_number + 1)
             return data
@@ -39,6 +39,7 @@ def send_message_until_acked(read_message, send_message, seq_number, data):
             retry_count += 1
             continue
     
+    print("devuelvo False")
     return False
 
 def get_empty_bytes(amount):

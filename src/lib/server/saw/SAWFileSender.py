@@ -43,13 +43,22 @@ class SAWFileSender:
                     if operation_retries_count == max_operation_retries_count:
                         raise UDPMessageNotReceivedException("Max retries reached for first ACK")
                     message = self.build_payload_message(current_seq_number, chunk_data)
+                    print('current seq number', current_seq_number)
                     response = send_message_until_acked(self.read_message, self.send_message, current_seq_number, message)
-                    if not response and current_seq_number == FIRST_MESSAGE_SEQUENCE_NUMBER:
+                    if (not response) and current_seq_number == FIRST_MESSAGE_SEQUENCE_NUMBER:
+                        print("entro al if de repetir el ack")
                         ack_message = build_ack_message(file_size)
                         self.send_message(ack_message)
                         operation_retries_count += 1
                         continue
+                    if not response:
+                        print("NO HUBO RESPONSE")
+                        # response = send_message_until_acked(self.read_message, self.send_message, current_seq_number, message)
+                        continue
+                    print('recibe ack', int.from_bytes(response[:PACKET_SEQUENCE_BYTES], "big"))
+                    # if (int.from_bytes(response[:PACKET_SEQUENCE_BYTES], "big") - 1) == current_seq_number:
                     current_seq_number += 1
+                    print('current', current_seq_number)
                     chunk_data = file.read(MAX_PAYLOAD_SIZE)
 
         except UDPMessageNotReceivedException as e:

@@ -79,7 +79,7 @@ class FileSender:
         Sends an ack message to the client, with the following headers:
         1 byte: 0x0
         4 bytes: file size
-        Rest of bytes filled with 0 (Total of 1024 bytes)
+        Rest of bytes filled with 0 (Total of 4096 bytes)
         '''
         ack_message_btyes = self.get_ack_message(file_size)
         socket.send_data(ack_message_btyes)

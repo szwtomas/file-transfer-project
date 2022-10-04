@@ -47,6 +47,6 @@ class FileReceiver:
 
     def send_ack_message(self, socket):
         # we assume there is enough space to receive the file
-        ack_message_btyes = self.get_empty_bytes(1024)
+        ack_message_btyes = self.get_empty_bytes(4096)
         socket.send_data(ack_message_btyes)
         print(f"Ack message sent")
