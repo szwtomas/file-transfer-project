@@ -26,7 +26,9 @@ class GBNFileSender:
         path = metadata.get_path()
         complete_path = f"{self.fs_root}/{path}"
         if not os.path.isfile(complete_path):
-            print('file not found')
+            ack_message = build_ack_message(0, True)
+            self.send_message(ack_message)
+            print("File does not exist")
             return
         file_size = os.path.getsize(complete_path)
         print(f"file size: {file_size}")
