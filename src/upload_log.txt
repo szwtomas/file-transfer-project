@@ -1,4 +1,4 @@
-[2022-10-03 17:43:10] [INFO]
+[2022-10-03 23:10:55] [INFO]
 Starting uploading...
-[2022-10-03 17:43:10] [INFO]
+[2022-10-03 23:11:13] [INFO]
 Finished uploading file: fotito.jpg

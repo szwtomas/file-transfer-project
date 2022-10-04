@@ -1,5 +1,8 @@
+from logging import exception
 import os
 from socket import SOCK_DGRAM, socket, AF_INET
+from socket import timeout
+from termios import ECHOE
 from lib.client.constants import *
 import time
 from lib.client.UDPClient import UDPClient
@@ -25,15 +28,19 @@ class SaWClient(UDPClient):
         last_ack = time.time()
         with open(path, 'wb') as file:
             while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
+                print("file size", file_size)
+                print("current size", (current_seq - 1) * MAX_PAYLOAD_SIZE)
                 if time.time() - last_ack > MAX_WAITING_TIME:
                     logger.log_connection_failed()
                     return
                 try:
-                    self.socket.settimeout(5)
+                    self.socket.settimeout(2)
                     response, _ = self.socket.recvfrom(PACKET_SIZE)
+                    print("current seq", current_seq)
+                    print('responce', response[:16])
                     last_ack = time.time()
                     is_error, packet_seq, payload = self.parse_download_response(response)
-                except socket.timeout:
+                except timeout:
                     logger.log_server_not_responding_error(args)
                     continue
                 if is_error:
@@ -48,7 +55,8 @@ class SaWClient(UDPClient):
                     file.write(payload)
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
                 self.socket.sendto(ack, (server_ip, port))
-                logger.log_progress((file_size - (current_seq - 1) * MAX_PAYLOAD_SIZE), file_size)
+                logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size)
+            print("SALI DEL WHILE")
         logger.log_download_success(path, args)
 
     def start_upload(self, server_ip, path, port, args):
@@ -93,7 +101,8 @@ class SaWClient(UDPClient):
                     self.socket.sendto(data, (server_ip, port))
                     print('lo enviamos')
                     try:
-                        self.socket.settimeout(5)
+                        self.socket.settimeout(2)
+                        print("esperamos respuesta")
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
                         acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding
                         last_ack = time.time()
@@ -101,7 +110,7 @@ class SaWClient(UDPClient):
                             current_seq += 1
                             break
 
-                    except socket.timeout:
+                    except timeout:
                         logger.log_server_not_responding_error(args)
                         continue
 

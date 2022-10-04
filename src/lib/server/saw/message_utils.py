@@ -24,6 +24,7 @@ def send_message_until_acked(read_message, send_message, seq_number, data):
     retry_count = 0
     max_retries = 10
     while retry_count < max_retries:
+        print('envio data')
         send_message(data)
         try:
             data = read_until_expected_seq_number(read_message, seq_number + 1)

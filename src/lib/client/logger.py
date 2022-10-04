@@ -146,6 +146,8 @@ def log_progress(bytes_sent, total_bytes):
     progress = int(round(50 * bytes_sent / float(total_bytes)))
     progress_bar = '=' * (progress - 1) + '>' + '.' * (50 - progress)
     percents = round(100.0 * bytes_sent / float(total_bytes), 1)
+    if percents > 100:
+        percents = 100
     sys.stdout.write(
         f"{COLOR_GREEN}[PROGRESS]{COLOR_END}"
         f": [{progress_bar}] "
