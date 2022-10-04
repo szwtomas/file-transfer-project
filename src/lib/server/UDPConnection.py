@@ -1,9 +1,8 @@
-# from concurrent.futures import thread
 import threading
 from collections import deque
+from .constants import SAW_PROTOCOL, GBN_PROTOCOL
+from .constants import MAX_ALIVE_TIME
 import time
-
-from lib.client.constants import MAX_WAITING_TIME
 from lib.server.gbn.GBNFileReceiver import GBNFileReceiver
 from lib.server.gbn.GBNFileSender import GBNFileSender
 from .saw.message_utils import read_until_expected_seq_number
@@ -12,6 +11,8 @@ from .metadata.MetadataParser import MetadataParser
 from .exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedException
 from .saw.SAWFileSender import SAWFileSender
 from lib.server.saw.SAWFileReceiver import SAWFileReceiver
+from .exceptions.ProtocolNotSupportedException import ProtocolNotSupportedException
+
 
 class UDPConnection(threading.Thread):
 
@@ -22,30 +23,30 @@ class UDPConnection(threading.Thread):
         self.fs_root = fs_root
         self.message_queue = deque()
         self.metadata_parser = MetadataParser()
-        if protocol == "saw":
+        self.last_message_read_timestamp = time.time()
+        if protocol.lower() == SAW_PROTOCOL:
             self.file_sender = SAWFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
             self.file_receiver = SAWFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
-        elif protocol == "gbn":
+        elif protocol.lower() == GBN_PROTOCOL:
             self.file_sender = GBNFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
             self.file_receiver = GBNFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
         else:
-            print(f"Protocol {protocol} not supported")
-            # TODO: logear
+            raise ProtocolNotSupportedException(f"Protocol {protocol} not supported")
 
 
-    def read_message_from_queue(self): # si queremos que sea bloqueante tiene que estar en while
-        print("espero a leer mensaje")
+    def read_message_from_queue(self):
         timer = time.time()
         while True:
             if time.time() - timer > 20:
                 raise UDPMessageNotReceivedException("Timeout")
             if len(self.message_queue) > 0:
-                print("desencolo mensaje")
-                return self.message_queue.popleft()
+                message = self.message_queue.popleft()
+                self.last_message_read_timestamp = time.time()
+                return message
             time.sleep(0.15)
 
+
     def enqueue_message(self, message):
-        print("encolo mensaje")
         self.message_queue.append(message)
 
 
@@ -75,7 +76,7 @@ class UDPConnection(threading.Thread):
     def get_initial_message(self):
         initial_message = self.read_message_from_queue()
         print(f"Initial message: {initial_message}")
-        retries = 0 # TODO: Use timers instead of retries
+        retries = 0
         MAX_RETRIES = 10
         while not self.is_metadata_message(initial_message) and retries < MAX_RETRIES:
             initial_message = self.read_message_from_queue()
@@ -88,12 +89,19 @@ class UDPConnection(threading.Thread):
         print(f"Handling download for metadata: {metadata}")
         self.file_sender.send_file(metadata)
     
+
     def handle_upload(self, metadata):
         print(f"Handling upload for metadata: {metadata}")
         self.file_receiver.receive_file(metadata)
 
+
     def is_metadata_message(self, data):
         return int.from_bytes(data[0:4], "big") == 0
 
+
     def send_message_to_client(self, data):
         self.socket.sendto(data, self.client_address)
+
+
+    def is_alive(self):
+        return time.time() - self.last_message_read_timestamp < MAX_ALIVE_TIME

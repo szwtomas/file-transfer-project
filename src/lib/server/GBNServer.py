@@ -27,6 +27,5 @@ class GBNServer():
             else:
                 print("Unknown command :(")
 
-
         self.udp_acceptor.stop_running()
         self.udp_acceptor.join()

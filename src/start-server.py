@@ -1,33 +1,30 @@
-from lib.server.GBNServer import GBNServer
-from lib.server.Server import Server
-from lib.server.SAWServer import SAWServer
+from lib.server.ServerFactory import ServerFactory
 from lib.server.parsing import server_args
-from lib.server.logger import *
+from lib.server.logger import init_logger, log_protocol_error
+from lib.server.exceptions.ProtocolNotSupportedException import ProtocolNotSupportedException
 
 LOG_FILE = "server_log.txt"
 
 
-def main(host, port, storage, protocol, args):
+def main(protocol, server_factory):
     init_logger(LOG_FILE)
-
-    # We can optionally accept host and port as command line parameters in the future
-    if protocol.lower() == "tcp":
-        log_tcp()
-        server = Server(host, port, storage)
-    elif protocol.lower() == "saw":
-        log_saw()
-        server = SAWServer(host, port, storage)
-    elif protocol.lower() == "gbn":
-        log_gbn()
-        server = GBNServer(host, port, storage)
-    else:
+    try:
+        start_logging = server_factory.get_logger(protocol)
+        start_logging()
+        server = server_factory.get_server(protocol)
+        server.run()
+    except ProtocolNotSupportedException as e:
+        print(f"Protocol not supported exception: {e}")
         log_protocol_error(protocol)
-        return
 
-    server.run()
-    print("Server stopped")
-
+    print("Server Stopped")
+    
 
 if __name__ == "__main__":
     args = server_args()
-    main(args.host, args.port, args.storage, args.protocol, args)
+    host = args.host
+    port = args.port
+    storage = args.storage
+    protocol = args.protocol
+    server_factory = ServerFactory(host, port, storage)
+    main(args.protocol, server_factory)

@@ -1,5 +1,6 @@
 from .UDPAcceptor import UDPAcceptor
 from .sockets.UDPSocket import create_udp_socket
+from .user_commands import QUIT, QUIT_ABREVIATED
 
 class SAWServer():
 
@@ -17,3 +18,13 @@ class SAWServer():
         self.socket.bind(address)
         self.udp_acceptor = UDPAcceptor(self.host, self.port, self.fs_root, self.socket, "saw")
         self.udp_acceptor.start()
+        while self.udp_acceptor.is_running():
+            user_input = input()
+            if user_input == QUIT or user_input == QUIT_ABREVIATED:
+                print("Quiting server...")
+                break
+            else:
+                print("Unknown command :(")
+
+        self.udp_acceptor.stop_running()
+        self.udp_acceptor.join()

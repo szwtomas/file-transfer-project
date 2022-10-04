@@ -59,7 +59,9 @@ class UDPAcceptor(threading.Thread):
 
 
     def remove_dead_connections(self):
-        # TODO: Iterate all connections and check last message time and remove dead connections or something
-        return True
+        for conn in self.connections:
+            if not self.connections[conn].is_alive():
+                print(f"Connection for client with address: {conn} is dead, removing it")
+                del self.connections[conn]
 
 
