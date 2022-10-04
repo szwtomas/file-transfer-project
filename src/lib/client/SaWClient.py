@@ -1,4 +1,3 @@
-import chunk
 import os
 from socket import SOCK_DGRAM, socket, AF_INET
 from socket import timeout

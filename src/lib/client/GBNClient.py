@@ -34,6 +34,9 @@ class GBNClient(UDPClient):
                     last_ack = time.time()
                     is_error, seq_num, payload = self.parse_download_response(response)
                 except timeout:
+                    ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+                    ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
+                    self.socket.sendto(ack, (server_ip, port))
                     logger.log_server_not_responding_error(args)
                     continue
                 if is_error:

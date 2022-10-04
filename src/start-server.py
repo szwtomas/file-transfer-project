@@ -13,13 +13,13 @@ def main(host, port, storage, protocol, args):
     # We can optionally accept host and port as command line parameters in the future
     if protocol.lower() == "tcp":
         log_tcp()
-        server = Server(host, port, storage, args)
+        server = Server(host, port, storage)
     elif protocol.lower() == "saw":
         log_saw()
         server = SAWServer(host, port, storage)
     elif protocol.lower() == "gbn":
         log_gbn()
-        server = GBNServer(host, port, storage, args)
+        server = GBNServer(host, port, storage)
     else:
         log_protocol_error(protocol)
         return
