@@ -104,7 +104,7 @@ class GBNClient(UDPClient):
                         last_ack_time = time.time()
                         global_timer = time.time()
                         logger.log_progress((last_acked_recv - 1) * MAX_PAYLOAD_SIZE, file_size)
-                        if recv_seq_num == expected_final_ack:
+                        if (last_acked_recv - 1) * MAX_PAYLOAD_SIZE >= file_size:
                             break
                         self.send_n_packets(next_seq_to_send, window_increment, file, server_ip, port, args)
                         next_seq_to_send = next_seq_to_send + window_increment
