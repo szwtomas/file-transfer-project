@@ -57,8 +57,11 @@ class GBNFileSender:
                     try:
                         acknowledge = self.read_message()
                         recv_seq_num = int.from_bytes(acknowledge[:PACKET_SEQUENCE_BYTES], "big") # cut padding
-                        if recv_seq_num <= last_acked_recv:
-                            continue # ignore old acks
+                        if recv_seq_num < last_acked_recv:
+                            continue  # ignore old acks
+                        if recv_seq_num == last_acked_recv:
+                            print("Probably packet lost")
+                            break  # To send again in line 52
                         print(f"Received ack for packet {recv_seq_num}, last acked: {last_acked_recv}")
                         window_increment = recv_seq_num - last_acked_recv
                         last_acked_recv = recv_seq_num
