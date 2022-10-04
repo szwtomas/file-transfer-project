@@ -3,7 +3,7 @@ import socket
 from socket import timeout
 import time
 from lib.client.constants import *
-#from constants import DOWNLOAD, FILE_SIZE_BYTES, MAX_PAYLOAD_SIZE, MAX_WAITING_TIME, PACKET_SEQUENCE_BYTES, PACKET_SIZE, PATH_SIZE_BYTES, PAYLOAD_SIZE_BYTES, SERVER_PORT, UPLOAD
+import lib.client.logger as logger
 
 ROOT_FS_PATH = os.getcwd() + "/../client_fs_root/"
 
@@ -25,10 +25,9 @@ class UDPClient:
         if operation == UPLOAD:
             message += os.path.getsize(ROOT_FS_PATH + path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
         message += int(0).to_bytes(PACKET_SIZE - len(message), "big") # padding
-        print(f"request {message[:16]}")
         return message
 
-    def make_request(self, server_ip, path, type):
+    def make_request(self, server_ip, path, type, args):
         file_size = int(0).to_bytes(FILE_SIZE_BYTES, byteorder="big")
         start_timer = time.time()
         while time.time() - start_timer < MAX_WAITING_TIME:
@@ -40,7 +39,7 @@ class UDPClient:
                     start_timer = time.time()
                     continue
             except timeout:
-                print("Server is not responding")
+                logger.log_server_not_responding_error(args)
                 continue
             if type == DOWNLOAD and response[PACKET_SEQUENCE_BYTES] == 0:
                 file_size = response[PACKET_SEQUENCE_BYTES + OPERATION_BYTES:PACKET_SEQUENCE_BYTES + 1 + FILE_SIZE_BYTES] #FIXME: ta bien esto? no

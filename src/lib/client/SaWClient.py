@@ -14,7 +14,7 @@ class SaWClient(UDPClient):
 
     def start_download(self, server_ip, path, port, args):
         logger.log_saw()
-        response, file_size = self.make_request(server_ip, path, DOWNLOAD)
+        response, file_size = self.make_request(server_ip, path, DOWNLOAD, args)
         logger.log_send_download_request(path, args)
         if response == 1:
             logger.log_file_not_found_error(path, args)
@@ -69,7 +69,7 @@ class SaWClient(UDPClient):
             logger.log_file_not_found_client_error(path, args)
             return
 
-        response, _ = self.make_request(server_ip, path, UPLOAD)
+        response, _ = self.make_request(server_ip, path, UPLOAD, args)
         logger.log_send_upload_request(path, args)
 
         if response != 0:  # error
