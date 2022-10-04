@@ -1,2 +1,3 @@
-[2022-10-04 04:43:11] [INFO]
-Info: Found file fotito2.jpg on server
+[2022-10-04 09:44:27] [INFO] Starting file transfer with Go Back N (UDP)
+[2022-10-04 09:44:27] [INFO] Info: Found file fotito2.jpg on server
+[2022-10-04 09:44:53] [INFO] Finished downloading file

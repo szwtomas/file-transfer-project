@@ -5,7 +5,7 @@ from lib.server.saw.message_utils import build_ack_message
 from ..exceptions.InvalidPathException import InvalidPathException
 from ..exceptions.FileSizeNotSupportedException import FileSizeNotSupportedException
 from ..file_transfer.utils import is_valid_path_syntax
-from ..constants import MAX_FILE_SIZE_SUPPORTED_IN_BYTES, ERROR_BYTES, PACKET_SIZE, PACKET_SEQUENCE_BYTES
+from ..constants import MAX_FILE_SIZE_SUPPORTED_IN_BYTES, ERROR_BYTES, PACKET_SIZE, PACKET_SEQUENCE_BYTES, PAYLOAD_SIZE_BYTES
 
 
 class GBNFileReceiver:
@@ -28,18 +28,22 @@ class GBNFileReceiver:
                 while file_size > 0:
                     packet = self.read_message()
                     seq_number = int.from_bytes(packet[:PACKET_SEQUENCE_BYTES], byteorder="big")
+                    print("expected seq", current_seq, "received seq", seq_number)
                     if seq_number == 0:
                         ack = build_ack_message(file_size)
                         self.send_message(ack)
                         continue
                     # chequear que el seguence number sea el esperado
-                    if seq_number != current_seq:
-                        ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, "big")
+                    elif seq_number > current_seq:
+                        ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+                    elif seq_number < current_seq:
+                        continue
                     else:
                         current_seq += 1
                         ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, "big")
-                        chunk_size = int.from_bytes(packet[PACKET_SEQUENCE_BYTES:PACKET_SEQUENCE_BYTES + 4], byteorder="big")
-                        chunk = packet[PACKET_SEQUENCE_BYTES + 4:PACKET_SEQUENCE_BYTES + 4 + chunk_size]
+                        print("envio ack = ", current_seq)
+                        chunk_size = int.from_bytes(packet[PACKET_SEQUENCE_BYTES:PACKET_SEQUENCE_BYTES + PAYLOAD_SIZE_BYTES], byteorder="big")
+                        chunk = packet[PACKET_SEQUENCE_BYTES + PAYLOAD_SIZE_BYTES:PACKET_SEQUENCE_BYTES + PAYLOAD_SIZE_BYTES + chunk_size]
                         file.write(chunk)
                         file_size -= chunk_size
                     ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big")

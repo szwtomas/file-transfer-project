@@ -60,74 +60,6 @@ class GBNClient(UDPClient):
                 logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size)
         logger.log_download_success(path, args)
 
-    # def _start_upload(self, server_ip, path, port, args):
-    #     complete_path = ROOT_FS_PATH + path
-    #     if not os.path.isfile(complete_path):
-    #         logger.log_file_not_found_client_error(complete_path, args)
-    #         return
-    #     response, _ = self.make_request(server_ip, path, UPLOAD)
-    #     logger.log_send_upload_request(path, args)
-    #     if response != 0: #error
-    #         logger.log_not_enough_space_error(path, args)
-    #         return
-
-    #     last_acked_seq = 1
-
-    #     # hace cuanto recibi
-    #     # ack mas alto que recibi y cuando lo recibi
-    #     # si llega un ack que es menor al mayor q recibí, lo ignoro
-    #     # envio paquetes a partir del mas alto q recibí
-
-
-    #     logger.log_start_upload(args)
-    #     with open(complete_path, 'rb') as file:
-    #         file.seek(0)
-    #         file_size = os.path.getsize(complete_path)
-    #         current_offset = 0
-    #         while file_size > current_offset:
-    #             chunks_sent = 0
-    #             file.seek(current_offset)
-    #             for i in range(1, GBN_WINDOW_SIZE + 1):
-    #                 data = b''
-    #                 # sequence number
-    #                 data += (last_acked_seq + i).to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
-
-    #                 chunk = file.read(MAX_PAYLOAD_SIZE)
-    #                 if not chunk:
-    #                     break
-
-    #                 # chunk size
-    #                 data += len(chunk).to_bytes(PAYLOAD_SIZE_BYTES, byteorder="big")
-    #                 # chunk
-    #                 data += chunk
-    #                 data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
-    #                 self.socket.sendto(data, (server_ip, port))
-    #                 chunks_sent += 1
-
-    #             last_ack = time.time()
-    #             for _ in range(chunks_sent):
-    #                 try:
-    #                     while True:
-    #                         if time.time() - last_ack < MAX_WAITING_TIME:
-    #                             logger.log_connection_failed()
-    #                             return
-    #                         self.socket.settimeout(3)
-    #                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
-    #                         acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding
-    #                         last_ack = time.time()
-    #                         if acknowledge - 1 >= last_acked_seq:
-    #                             break
-
-    #                 except timeout:
-    #                     logger.log_server_not_responding_error(args)
-    #                     continue
-                    
-    #                 if acknowledge > last_acked_seq:
-    #                     last_acked_seq += 1
-    #                     current_offset += MAX_PAYLOAD_SIZE
-    #             logger.log_progress((last_acked_seq - 1) * MAX_PAYLOAD_SIZE, file_size, args)
-    #     logger.log_upload_success(args)
-
 
     def start_upload(self, server_ip, path, port, args):
         logger.log_gbn()
@@ -142,6 +74,7 @@ class GBNClient(UDPClient):
             return
         
         last_acked_recv = 1
+        next_seq_to_send = 1
         logger.log_start_upload(args)
         with open(complete_path, 'rb') as file:
             file.seek(0)
@@ -149,25 +82,36 @@ class GBNClient(UDPClient):
             expected_final_ack = file_size // MAX_PAYLOAD_SIZE + 2
 
             global_timer = time.time()
-            while last_acked_recv < expected_final_ack and time.time() - global_timer < MAX_WAITING_TIME * 4:
+            while last_acked_recv < expected_final_ack:
+                if  time.time() - global_timer > MAX_WAITING_TIME * 4:
+                    print("timed out waiting for ack, exiting program")
+                    #FIXME: logggg
+                    return
                 self.send_n_packets(last_acked_recv, GBN_WINDOW_SIZE, file, server_ip, port)
-                
+                next_seq_to_send = last_acked_recv + GBN_WINDOW_SIZE
+
                 last_ack_time = time.time()
-                while time.time() - last_ack_time < MAX_WAITING_TIME:
+                while time.time() - last_ack_time < 2:
                     try:
                         self.socket.settimeout(3)
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
                         recv_seq_num = int.from_bytes(acknowledge[:PACKET_SEQUENCE_BYTES], "big") # cut padding
-                        if recv_seq_num <= last_acked_recv:
-                            continue # ignore old acks
+                        print("received ack", recv_seq_num)
+                        if recv_seq_num < last_acked_recv:
+                            continue  # ignore old acks
+                        if recv_seq_num == last_acked_recv:
+                            print("Probably packet lost")
+                            break  # To send again in line 90
                         window_increment = recv_seq_num - last_acked_recv
+                        print("window increment", window_increment)
                         last_acked_recv = recv_seq_num
                         last_ack_time = time.time()
                         global_timer = time.time()
                         logger.log_progress((last_acked_recv - 1) * MAX_PAYLOAD_SIZE, file_size)
                         if recv_seq_num == expected_final_ack:
                             break
-                        self.send_n_packets(last_acked_recv, window_increment, file, server_ip, port)
+                        self.send_n_packets(next_seq_to_send, window_increment, file, server_ip, port)
+                        next_seq_to_send = next_seq_to_send + window_increment
                     except timeout:
                         logger.log_server_not_responding_error(args)
                         continue
@@ -180,6 +124,7 @@ class GBNClient(UDPClient):
         for seq_num in range(initial, initial + n):
             data = b''
             # sequence number
+            print("sending seq", seq_num)
             data += seq_num.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
             file.seek((seq_num - 1) * MAX_PAYLOAD_SIZE)
             chunk = file.read(MAX_PAYLOAD_SIZE)
