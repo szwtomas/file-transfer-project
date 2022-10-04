@@ -15,7 +15,7 @@ COLOR_END = '\033[0m'
 def init_logger(logging_file):
     logging.basicConfig(filename=logging_file,
                         filemode='w',
-                        format="[%(asctime)s] [%(levelname)s]\n"
+                        format="[%(asctime)s] [%(levelname)s] "
                                "%(message)s",
                         datefmt='%Y-%m-%d %H:%M:%S',
                         level=logging.INFO)
@@ -35,6 +35,11 @@ def log_start_upload(args):
         logging.info(f"Starting uploading...")
         print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
               f"{COLOR_END} - Starting uploading...")
+
+
+def log_packet_seq_number(seq_number, args):
+    if args.verbose:
+        logging.info(f"Packet number {seq_number} sent.")
 
 
 def log_upload_success(file_name, args):
@@ -72,6 +77,16 @@ def log_download_success(file_name, args):
           f"{COLOR_END} - Downloaded {file_name} successfully")
 
 
+def log_recv_pack_number(seq_number, args):
+    if args.verbose:
+        logging.info(f"Received packet number {seq_number}.")
+
+
+def log_packet_ack_number(ack_number, args):
+    if args.verbose:
+        logging.info(f"Ack {ack_number} sent.")
+
+
 def log_file_not_found_error(file_name, args):
     logging.error("Error: The"
                   f"{file_name} does not exist in server\nExiting Program")
@@ -92,6 +107,7 @@ def log_file_exists(file_name, args):
 def log_packet_sequence_number_error(args):
     if args.verbose:
         logging.info("Packet sequence number is not correct")
+        print()
         print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
               " - Packet sequence number is not correct")
 

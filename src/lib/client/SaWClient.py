@@ -14,8 +14,6 @@ class SaWClient(UDPClient):
 
     def start_download(self, server_ip, path, port, args):
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
-        print(response)
-        print(file_size)
         logger.log_send_download_request(path, args)
         if response == 1:
             logger.log_file_not_found_error(path, args)
@@ -24,24 +22,19 @@ class SaWClient(UDPClient):
         logger.log_file_exists(path, args)
         current_seq = 1
         last_ack = time.time()
-        with open(path, 'wb') as file:
+        complete_path = ROOT_FS_PATH + path
+        with open(complete_path, 'wb') as file:
             while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
-                print("file size", file_size)
-                print("current size", (current_seq - 1) * MAX_PAYLOAD_SIZE)
                 if time.time() - last_ack > MAX_WAITING_TIME:
                     logger.log_connection_failed()
                     return
                 try:
                     self.socket.settimeout(0.5)
                     response, _ = self.socket.recvfrom(PACKET_SIZE)
-                    print("current seq", current_seq)
-                    print('responce', response[:16])
                     last_ack = time.time()
                     is_error, packet_seq, payload = self.parse_download_response(response)
-                    print("NOS LLEGA EL PAQUETE", packet_seq)
-                    print("esperabamos el paquete", current_seq)
+                    logger.log_recv_pack_number(packet_seq, args)
                 except timeout:
-                    print('dio timeout, mando ack nuevo', current_seq)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
                     self.send_acknowledge( ack, server_ip, port)
@@ -51,22 +44,17 @@ class SaWClient(UDPClient):
                     logger.log_max_payload_size_exceedes_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 elif packet_seq < current_seq:
-                    print("ENTRO AL IF 1")
-                    logger.log_packet_sequence_number_error(args)
                     continue
                 elif packet_seq > current_seq:
-                    print("ENTRO AL IF 2")
                     logger.log_packet_sequence_number_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 else:
                     current_seq += 1
-                    print("AVANZO lo que recibi avanzaba, mando ack", current_seq)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     file.write(payload)
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
                 self.send_acknowledge( ack, server_ip, port)
                 logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size)
-            print("SALI DEL WHILE")
         logger.log_download_success(path, args)
 
     def send_acknowledge(self, ack, server_ip, port):
@@ -86,7 +74,6 @@ class SaWClient(UDPClient):
             logger.log_not_enough_space_error(path, args)
             return
 
-        print("UPLOADING")
         current_seq = 1
         logger.log_start_upload(args)
         with open(complete_path, 'rb') as file:
@@ -102,21 +89,16 @@ class SaWClient(UDPClient):
                 # chunk
                 data += chunk
                 data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
-                
-                print(f"data {data[:16]}")
 
                 last_ack = time.time()
                 while True:
                     if time.time() - last_ack > MAX_WAITING_TIME:
-                        print("ya me morí")
                         logger.log_connection_failed()
                         return
-                    print('lo vamos a enviar')
                     self.socket.sendto(data, (server_ip, port))
-                    print('lo enviamos')
+                    logger.log_packet_seq_number(current_seq, args)
                     try:
                         self.socket.settimeout(0.5)
-                        print("esperamos respuesta")
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
                         acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding
                         last_ack = time.time()
