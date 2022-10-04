@@ -24,23 +24,78 @@ def init_logger(logging_file):
 # Log protocol
 def log_tcp():
     logging.info(f"Starting TCP Server")
+    print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
+          f"{COLOR_END} - Starting running TCP Server")
 
 
 def log_saw():
     logging.info(f"Starting Stop and Wait Server (UDP)")
+    print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
+          f"{COLOR_END} - Starting running Stop and Wait Server (UDP)")
 
 
 def log_gbn():
     logging.info(f"Starting Go Back N Server (UDP)")
+    print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
+          f"{COLOR_END} - Starting running Go Back N Server (UDP)")
+
+
+##############################################################################
+def log_server_stop():
+    logging.info(f"Server stopping...")
+    print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
+          f"{COLOR_END} - Server stopping")
+
+
+def log_acceptor_starting(args):
+    if args.verbose:
+        logging.info(f"Acceptor started running")
+        print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
+              f"{COLOR_END} - Acceptor started running")
+
+
+def log_acceptor_listening(listen_address, args):
+    if not args.quiet:
+        logging.info(f"Acceptor listening on address: {listen_address}")
+        print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
+              f"{COLOR_END} - Acceptor listening on address: {listen_address}")
+
+
+def log_acceptor_closed(args):
+    if not args.quiet:
+        logging.info("Acceptor socket closed")
+        print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
+              f"{COLOR_END} - Acceptor socket closed")
+
+
+def log_acceptor_closing(args):
+    if not args.quiet:
+        logging.info("Acceptor waiting for incoming connection...")
+        print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
+              f"{COLOR_END} - Acceptor waiting for incoming connection...")
+
+
+##############################################################################
+def log_handle_connection_error(e, args):
+    if args.verbose:
+        logging.error(f"Error in handle_connection: {e}")
+        print(f"{COLOR_BOLD}{COLOR_RED}[ERROR]"
+              f"{COLOR_END} - Error in handle_connection: {e}")
+
+
+def log_error(e, args):
+    logging.error(f"Error: {e}")
+    print(f"{COLOR_BOLD}{COLOR_RED}[ERROR]"
+          f"{COLOR_END} - {e}")
 
 
 ##############################################################################
 # Upload logs
-def log_incoming_upload_request(ip, file_name, args):
+def log_incoming_upload_request(file_name, args):
     if not args.quiet:
-        logging.info(f"Incoming request from {ip} to upload file: {file_name}")
+        logging.info(f"Incoming request to upload file: {file_name}")
         print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
-              f"{COLOR_END} - Incoming request to upload '{file_name}' from {ip}")
+              f"{COLOR_END} - Incoming request to upload '{file_name}'")
 
 
 def log_start_upload(ip, args):
@@ -50,13 +105,13 @@ def log_start_upload(ip, args):
               f"{COLOR_END} - Starting uploading file from {ip}")
 
 
-def log_packet_seq_number(ip, seq_number, args):
+def log_packet_seq_number(seq_number, args):
     if args.verbose:
-        logging.info(f"Packet number {seq_number} received from {ip}")
+        logging.info(f"Packet number {seq_number} received")
 
 
-def log_upload_success(ip, file_name, args):
-    logging.info(f"Finished uploading file '{file_name}' from {ip}")
+def log_upload_success(file_name, args):
+    logging.info(f"Finished uploading file '{file_name}'")
     print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
           f"{COLOR_END} - Uploaded {file_name} succesfully")
 
@@ -70,29 +125,29 @@ def log_not_enough_space_error(ip, file_name, args):
 
 ##############################################################################
 # Download logs
-def log_incoming_download_request(ip, file_name, args):
+def log_incoming_download_request(file_path, args):
     if not args.quiet:
-        logging.info(f"Incoming request from {ip} to download file: {file_name}")
+        logging.info(f"Incoming download request for '{file_path}")
         print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
-              f"{COLOR_END} - Incoming request to download '{file_name}' from {ip}")
+              f"{COLOR_END} - Incoming download request for {file_path}")
 
 
-def log_download_success(ip, file_name, args):
-    logging.info(f"CLient {ip} finished downloading file {file_name}")
+def log_download_success(file_name, args):
+    logging.info(f"Finished downloading file {file_name}")
     print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
           f"{COLOR_END} - Downloaded {file_name} successfully")
 
 
-def log_send_pack_number(ip, seq_number, args):
+def log_send_pack_number(seq_number, args):
     if args.verbose:
-        logging.info(f"Sending packet number {seq_number} to {ip}")
+        logging.info(f"Sending packet number {seq_number}")
 
 
-def log_file_not_found_error(ip, file_name, args):
+def log_file_not_found_error(file_name, args):
     logging.error("Error: The file "
-                  f"'{file_name}' requested by {ip} does not exist in server. Stop downloading...")
+                  f"'{file_name}' does not exist in server. Stop downloading...")
     print(f"{COLOR_RED}[ERROR]{COLOR_END}"
-          f" - The file {file_name} requested by {ip} does not exist in server. Stop downloading...")
+          f" - The file {file_name} does not exist in server. Stop downloading...")
 
 
 def log_file_exists(ip, file_name, args):
@@ -144,7 +199,7 @@ def log_unknown_exception(args):
 
 
 def log_connection_failed():
-    logging.error("Error: Conection to the server has failed. "
-                  "\nExiting Program")
+    logging.error("Error: Conection to the client has failed. "
+                  "\nClosing connection...")
     print(f"{COLOR_RED}[ERROR]{COLOR_END}"
-          " - Connection to the server failed.")
+          " - Connection to the client failed.")

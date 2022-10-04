@@ -8,11 +8,11 @@ from .exceptions.ProtocolNotSupportedException import ProtocolNotSupportedExcept
 
 class ServerFactory:
 
-    def __init__(self, host, port, storage):
+    def __init__(self, host, port, storage, args):
         self.servers = {
-            TCP_PROTOCOL: TCPServer(host, port, storage),
-            SAW_PROTOCOL: SAWServer(host, port, storage),
-            GBN_PROTOCOL: GBNServer(host, port, storage)
+            TCP_PROTOCOL: TCPServer(host, port, storage, args),
+            SAW_PROTOCOL: SAWServer(host, port, storage, args),
+            GBN_PROTOCOL: GBNServer(host, port, storage, args)
         }
 
         self.loggers = {

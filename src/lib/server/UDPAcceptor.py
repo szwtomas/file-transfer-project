@@ -1,13 +1,14 @@
 from socket import timeout
 from .UDPConnection import UDPConnection
 import threading
+import lib.server.logger as logger
 
 ACCEPT_TIMEOUT_IN_SECONDS = 0.5
 MAX_BUF_SIZE = 4096
 
 class UDPAcceptor(threading.Thread):
 
-    def __init__(self, host, port, fs_root, socket, protocol):
+    def __init__(self, host, port, fs_root, socket, protocol, args):
         threading.Thread.__init__(self)
         self.host = host
         self.port = port
@@ -15,12 +16,12 @@ class UDPAcceptor(threading.Thread):
         self.socket = socket
         self.connections = {}
         self.protocol = protocol
+        self.args = args
         self.should_run = True
 
 
     def run(self):
-        print("UDP Acceptor running")
-        print(f"UDP Acceptor socket timeout set to: {ACCEPT_TIMEOUT_IN_SECONDS} seconds")
+        logger.log_acceptor_starting(self.args)
         self.should_run = True
         while self.should_run:
             try:
@@ -31,11 +32,8 @@ class UDPAcceptor(threading.Thread):
 
             self.create_connection_if_not_exists(client_address)
             self.connections[client_address].enqueue_message(data)
-            print(f"Enqueued to connection of address: {client_address} , message of bytes: {data[:16]}")
 
             number_of_connections_killed = self.remove_dead_connections()
-            if number_of_connections_killed > 0:
-                print(f"{number_of_connections_killed} where killed")
 
         self.close_connections()
         self.socket.close()
@@ -43,7 +41,7 @@ class UDPAcceptor(threading.Thread):
 
     def create_connection_if_not_exists(self, client_address):
         if client_address not in self.connections:
-            self.connections[client_address] = UDPConnection(client_address, self.socket, self.fs_root, self.protocol)
+            self.connections[client_address] = UDPConnection(client_address, self.socket, self.fs_root, self.protocol, self.args)
             self.connections[client_address].start()
 
 

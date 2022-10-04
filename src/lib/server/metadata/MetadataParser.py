@@ -23,11 +23,8 @@ class MetadataParser:
             if sequence_number != 0:
                 raise MetadataParseException(f"Error parsing metadata: Sequence number is {sequence_number} instad of 0")
             is_download = self.parse_is_download(data)
-            print(f"Is Download: {is_download}") 
             path, path_length_in_bytes = self.parse_path(data)
-            print(f"path: {path}")
             metadata = Metadata(is_download, path, 0 if is_download else self.parse_file_size(data, path_length_in_bytes))
-            print(f"Received Metadata: {metadata}")
             return metadata
         except Exception as e:
             raise MetadataParseException("Error parsing metadata: " + str(e))

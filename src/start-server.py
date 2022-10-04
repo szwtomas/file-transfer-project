@@ -14,10 +14,8 @@ def main(protocol, server_factory):
         server = server_factory.get_server(protocol)
         server.run()
     except ProtocolNotSupportedException as e:
-        print(f"Protocol not supported exception: {e}")
         log_protocol_error(protocol)
 
-    print("Server Stopped")
     
 
 if __name__ == "__main__":
@@ -26,5 +24,5 @@ if __name__ == "__main__":
     port = args.port
     storage = args.storage
     protocol = args.protocol
-    server_factory = ServerFactory(host, port, storage)
+    server_factory = ServerFactory(host, port, storage, args)
     main(args.protocol, server_factory)

@@ -5,29 +5,30 @@ from lib.server.saw.message_utils import build_ack_message
 from ..exceptions.InvalidPathException import InvalidPathException
 from ..exceptions.FileSizeNotSupportedException import FileSizeNotSupportedException
 from ..constants import MAX_FILE_SIZE_SUPPORTED_IN_BYTES, ERROR_BYTES, PACKET_SIZE, PACKET_SEQUENCE_BYTES
+import lib.server.logger as logger
 
 
 class SAWFileReceiver:
-    def __init__(self, fs_root, read_message, send_message):
+    def __init__(self, fs_root, read_message, send_message, args):
         self.fs_root = fs_root
         self.read_message = read_message
         self.send_message = send_message
+        self.args = args
 
     def receive_file(self, metadata):
         path = f"{self.fs_root}/{metadata.get_path()}"
+        logger.log_incoming_upload_request(metadata.get_path(), self.args)
         file_size = metadata.get_file_size()
-        print('verify file size')
         self.verify_file_size(file_size)
         ack = build_ack_message(file_size)
         self.send_message(ack)
         current_seq = 1
         try:
             with open(path, "wb") as file:
-                print(f"About to receive file: {path}")
                 while file_size > 0:
                     packet = self.read_message()
-                    print(f"PACKET {packet[:16]}")
                     seq_number = int.from_bytes(packet[:PACKET_SEQUENCE_BYTES], byteorder="big")
+                    logger.log_packet_seq_number(seq_number, self.args)
                     if seq_number == 0:
                         ack = build_ack_message(file_size)
                         self.send_message(ack)
@@ -44,9 +45,10 @@ class SAWFileReceiver:
                         file_size -= chunk_size
                     ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big")
                     self.send_message(ack)
+            logger.log_download_success(metadata.get_path(), self.args)
 
         except Exception as e:
-            print(f"Exception receiving file: {e}")
+            logger.log_error(e, self.args)
 
     def verify_file_size(self, file_size):
         if file_size > MAX_FILE_SIZE_SUPPORTED_IN_BYTES:

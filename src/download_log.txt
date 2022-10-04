@@ -1,3 +1,2 @@
-[2022-10-04 17:46:16.871] [INFO] Starting file transfer with Go Back N (UDP)
-[2022-10-04 17:46:17.028] [INFO] Info: Found file fotito2.jpg on server
-[2022-10-04 17:46:21.691] [INFO] Finished downloading file
+[2022-10-04 18:04:54.378] [INFO] Starting file transfer with Stop and Wait (UDP)
+[2022-10-04 18:04:54.529] [INFO] Info: Found file fotito2.jpg on server

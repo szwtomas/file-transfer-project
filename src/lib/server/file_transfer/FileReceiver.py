@@ -4,10 +4,12 @@ from ..sockets.TCPSocket import TCPSocket
 from ..constants import CHUNK_SIZE
 from ..metadata.Metadata import Metadata
 from .FileTransferValidator import FileTransferValidator
+import lib.server.logger as logger
 
 class FileReceiver:
-    def __init__(self, fs_root):
+    def __init__(self, fs_root, args):
         self.fs_root = fs_root
+        self.args = args
         self.validator = FileTransferValidator()
 
     def receive_file(self, socket: TCPSocket, metadata: Metadata):
@@ -24,12 +26,11 @@ class FileReceiver:
         self.send_ack_message(socket)
 
         path = f"{self.fs_root}/{metadata.get_path()}"
-        print(f"PATH: {path}")
         file_size = metadata.get_file_size()
 
         try:
             with open(path, "wb") as file:
-                print(f"About to receive file: {path}")
+                logger.log_incoming_upload_request(path, self.args)
                 while file_size > 0:
                     _ = int.from_bytes(socket.read_data(SEQ_NUMBER_BYTES), byteorder="big")
                     chunk_size = int.from_bytes(socket.read_data(PAYLOAD_SIZE_BYTES), byteorder="big")
@@ -38,7 +39,7 @@ class FileReceiver:
                     file_size -= chunk_size
 
         except Exception as e:
-            print(f"Exception receiving file: {e}")
+            logger.log_error(e)
 
     def get_empty_bytes(self, amount):
         empty = 0
@@ -48,4 +49,3 @@ class FileReceiver:
         # we assume there is enough space to receive the file
         ack_message_btyes = self.get_empty_bytes(4096)
         socket.send_data(ack_message_btyes)
-        print(f"Ack message sent")

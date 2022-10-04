@@ -9,43 +9,43 @@ from ..file_transfer.FileTransferValidator import FileTransferValidator
 from .message_utils import build_ack_message, get_empty_bytes, send_message_until_acked
 from ..constants import CHUNK_SIZE
 from ..exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedException
+import lib.server.logger as logger
 
 FIRST_MESSAGE_SEQUENCE_NUMBER = 1
 
 class GBNFileSender:
     
-    def __init__(self, fs_root, read_message, send_message):
+    def __init__(self, fs_root, read_message, send_message, args):
         self.fs_root = fs_root
         self.validator = FileTransferValidator()
         self.read_message = read_message
         self.send_message = send_message
+        self.args = args
 
 
     def send_file(self, metadata):
-        print("TAMO EN GBN Sending file")
         path = metadata.get_path()
         complete_path = f"{self.fs_root}/{path}"
         if not os.path.isfile(complete_path):
             ack_message = build_ack_message(0, True)
             self.send_message(ack_message)
-            print("File does not exist")
+            logger.log_file_not_found_error(path, self.args)
             return
         file_size = os.path.getsize(complete_path)
-        print(f"file size: {file_size}")
+        logger.log_incoming_download_request(path, self.args)
         ack = build_ack_message(file_size)
         self.send_message(ack)
         
         last_acked_recv = 1
         next_seq_to_send = 1
-        print(f"About to send file: {path}")
         with open(complete_path, 'rb') as file:
             file.seek(0)
             expected_final_ack = file_size // MAX_PAYLOAD_SIZE + 2
 
             global_timer = time.time()
             while last_acked_recv < expected_final_ack:
-                if  time.time() - global_timer > MAX_WAITING_TIME * 4:
-                    print("timed out waiting for ack, exiting program")
+                if time.time() - global_timer > MAX_WAITING_TIME * 4:
+                    logger.log_connection_failed()
                     return
 
                 self.send_n_packets(last_acked_recv, GBN_WINDOW_SIZE, file)
@@ -55,13 +55,11 @@ class GBNFileSender:
                 while time.time() - last_ack_time < 1:
                     try:
                         acknowledge = self.read_message()
-                        recv_seq_num = int.from_bytes(acknowledge[:PACKET_SEQUENCE_BYTES], "big") # cut padding
+                        recv_seq_num = int.from_bytes(acknowledge[:PACKET_SEQUENCE_BYTES], "big")  # cut padding
                         if recv_seq_num < last_acked_recv:
                             continue  # ignore old acks
                         if recv_seq_num == last_acked_recv:
-                            print("Probably packet lost")
                             break  # To send again in line 52
-                        print(f"Received ack for packet {recv_seq_num}, last acked: {last_acked_recv}")
                         window_increment = recv_seq_num - last_acked_recv
                         last_acked_recv = recv_seq_num
                         last_ack_time = time.time()
@@ -71,9 +69,8 @@ class GBNFileSender:
                         self.send_n_packets(next_seq_to_send, window_increment, file)
                         next_seq_to_send = next_seq_to_send + window_increment
                     except timeout:
-                        print("Server not responding")
                         continue
-            print(f"File {path} sent successfully")
+            logger.log_download_success(path, self.args)
     
 
     def build_payload_message(self, seq_number: int, payload):
@@ -105,5 +102,5 @@ class GBNFileSender:
             # chunk
             data += chunk
             data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
-            print(f"Sending packet {seq_num}")
+            logger.log_send_pack_number(seq_num, self.args)
             self.send_message(data)

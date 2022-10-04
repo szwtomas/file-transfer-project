@@ -4,10 +4,11 @@ from .user_commands import QUIT, QUIT_ABREVIATED
 
 class SAWServer():
 
-    def __init__(self, host, port, fs_root, ):
+    def __init__(self, host, port, fs_root, args, ):
         self.host = host
         self.port = port
         self.fs_root = fs_root
+        self.args = args
         self.udp_message_sender = None
         self.udp_acceptor = None
         self.socket = None
@@ -16,7 +17,7 @@ class SAWServer():
         self.socket = create_udp_socket()
         address = (self.host, self.port)
         self.socket.bind(address)
-        self.udp_acceptor = UDPAcceptor(self.host, self.port, self.fs_root, self.socket, "saw")
+        self.udp_acceptor = UDPAcceptor(self.host, self.port, self.fs_root, self.socket, "saw",  self.args)
         self.udp_acceptor.start()
         while self.udp_acceptor.is_running():
             user_input = input()

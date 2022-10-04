@@ -5,16 +5,11 @@ from ..exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedExc
 def read_until_expected_seq_number(read_message, expected_seq_number):
 
     message = read_message()
-    print(f"message read {message[:16]}")
-    print("expected seq number", expected_seq_number)
-    print(f"received seq number {_get_seq_number_from_message(message)}")
     initial_time = time.time()
     while _get_seq_number_from_message(message) != expected_seq_number:
         if time.time() - initial_time > 0.5:
             raise UDPMessageNotReceivedException(f"Message of sequence number: {expected_seq_number} was not received")
         message = read_message()
-        print("expected seq number", expected_seq_number)
-        print(f"received seq number {_get_seq_number_from_message(message)}")
     return message
 
 def _get_seq_number_from_message(data):
@@ -24,16 +19,13 @@ def _get_seq_number_from_message(data):
 def send_message_until_acked(read_message, send_message, seq_number, data):
     initial_time = time.time()
     while time.time() - initial_time < 0.5:
-        print('envio data')
         send_message(data)
         try:
             data = read_until_expected_seq_number(read_message, seq_number + 1)
             return data
         except UDPMessageNotReceivedException:
-            print('no recibí respuesta, vuelvo a enviar')
             continue
-    
-    print("devuelvo False")
+
     return None
 
 def get_empty_bytes(amount):

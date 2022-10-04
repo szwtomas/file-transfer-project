@@ -3,16 +3,18 @@ from .metadata.MetadataParser import MetadataParser
 from .file_transfer.FileReceiver import FileReceiver
 from .file_transfer.FileSender import FileSender
 from .sockets.TCPSocket import TCPSocket
+import lib.server.logger as logger
 
 class TCPConnection(threading.Thread):
     
-    def __init__(self, socket: TCPSocket, fs_root):
+    def __init__(self, socket: TCPSocket, fs_root, args):
         threading.Thread.__init__(self)
         self.socket = socket
         self.fs_root = fs_root
         self.metadata_parser = MetadataParser()
-        self.file_sender = FileSender(fs_root)
-        self.file_receiver = FileReceiver(fs_root)
+        self.file_sender = FileSender(fs_root, args)
+        self.file_receiver = FileReceiver(fs_root, args)
+        self.args = args
         
 
     def run(self):
@@ -25,20 +27,17 @@ class TCPConnection(threading.Thread):
             metadata = self.metadata_parser.parse(data)
             self.transfer_file(metadata)
         except Exception as e:
-            print(f"Error in handle_connection: {e}  ")
+            logger.log_handle_connection_error(e)
 
 
     def transfer_file(self, metadata):
-        print("Calling transfer_file")
         try:
             if metadata.get_is_download():
-                print("is_download")
                 self.file_sender.send_file(self.socket, metadata)
             else:
-                print("is_download")
                 self.file_receiver.receive_file(self.socket, metadata)
         except Exception as e:
-            print(f"Exception in transfer_file: {e}")
+            logger.log_error(e, self.args)
 
 
     
