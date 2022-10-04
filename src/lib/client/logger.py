@@ -129,6 +129,7 @@ def log_packet_sequence_number_error(args):
 def log_max_payload_size_exceedes_error(args):
     if args.verbose:
         logging.error("Packet payload size from received packet exceeded maximum size")
+        print()
         print(f"{COLOR_RED}[ERROR]{COLOR_END}"
               " - Packet payload size from received packet exceeded maximum size")
 
@@ -136,6 +137,7 @@ def log_max_payload_size_exceedes_error(args):
 def log_server_not_responding_error(args):
     if args.verbose:
         logging.info("Server not responding...")
+        print()
         print(f"{COLOR_BLUE}[INFO]{COLOR_END}"
               " - Server not responding...")
 
@@ -166,6 +168,7 @@ def log_connection_refused():
 def log_connection_failed():
     logging.error("Error: Conection to the server has failed. "
                   "\nExiting Program")
+    print()
     print(f"{COLOR_RED}[ERROR]{COLOR_END}"
           " - Connection to the server failed.")
 
