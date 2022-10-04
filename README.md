@@ -1,45 +1,43 @@
-File Transfer System Distribuidos
+# Introducción a los sistemas distribuídos - File Transfer
 
-Assumptions:
+**Execution instructions**
 
-- Files to upload and download can not be larger than 4gb
-- When uploading, it will not overwrite the file if it already exists, it has to be deleted first (for security reasons)
+**Server**:
 
-Handshake:
+To run the server, go to 'src' folder and run
+```
+python3 start-server.py <protocol> <options>
+```
+Supported protocols options are:
+- gbn (Go Back N)
+- saw (Stop and Wait)
 
-Client first Message:
+To display options run
+```
+python3 start-server.py -h
+```
 
-- Sequence Number: 4 bytes indicating the number of the message
-- operation: 1 byte indicating if the operation is download or upload (0 for download, other for upload)
-- path_size: 1 byte indicating the path's size in bytes
-- path of size path_size
-- file_size: 4 bytes indicating size of the file (if operation is upload)
+**Client**:
 
-Server first response Message:
+To run a client, go to 'src' folder and run:
 
-- Response to Download Request:
+If you want to start a downloading client:
+```
+python3 download-file.py <protocol> <options> <filename>
+```
 
-  - packet sequence number: 4 bytes
-  - status: 1 byte indicating if there was an error with the request (0 indicating OK, 1 indicating Error)
-  - file_size: 4 bytes indicating the file size (only if status == OK)
+If you want to start an uploading client:
+```
+python3 upload-file.py <protocol> <options> <filename>
+```
+Supported protocols options are:
+- gbn (Go Back N)
+- saw (Stop and Wait)
 
-- Response to Upload Request:
-  - status: 1 byte indicating if there was an error with the request (0 indicating OK, 1 indicating Error)
+To display options run any of these two lines
+```
+python3 download-file.py -h
+python3 upload-file.py -h
+```
 
-**_Data messages_**:
-
-- 4 bytes: Sequence number
-- 4 bytes: payload_size
-- (payload_size) bytes: payload
-
-**_ACK_**:
-
-- 4 bytes indicating the sequence number of the acked packet
-- 4 bytes indicating total of bytes received overall
-
-**Stop And Wait Protocol**
-
-- The first message interchange is the same as in TCP, because we are already using an ACK response
-- Once the file transfer starts, the protcol is almost the same as in TCP but responding with an ACK for every received message
-- The ACK consists on the offset received, and for every message both the server and client sends, they must wait for the ACK to be received in order to send the next message
-- If a message with a different offset than expected is received, the message is dropped
+Filename is the name of the file you want to download or upload. This file should either be in "server_fs_root" or "client_fs_root", depending on the operation, and will be saved in the corresponding folder between those two.
