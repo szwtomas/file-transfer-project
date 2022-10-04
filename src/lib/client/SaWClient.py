@@ -1,3 +1,4 @@
+import chunk
 import os
 from socket import SOCK_DGRAM, socket, AF_INET
 from socket import timeout
@@ -78,19 +79,11 @@ class SaWClient(UDPClient):
 
         current_seq = 1
         logger.log_start_upload(args)
+        file_size = os.path.getsize(complete_path)
         with open(complete_path, 'rb') as file:
-            file_size = os.path.getsize(complete_path)
-            while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
-                data = b''
-                # packet sequence number
-                data += current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
-
-                chunk = file.read(MAX_PAYLOAD_SIZE)
-                # chunk size
-                data += len(chunk).to_bytes(PAYLOAD_SIZE_BYTES, byteorder="big")
-                # chunk
-                data += chunk
-                data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
+            chunk = file.read(MAX_PAYLOAD_SIZE)
+            while chunk:
+                data = self.build_payload_message(current_seq, chunk)
 
                 last_ack = time.time()
                 while True:
@@ -106,6 +99,7 @@ class SaWClient(UDPClient):
                         last_ack = time.time()
                         if current_seq + 1 == int.from_bytes(acknowledge, byteorder="big"):
                             current_seq += 1
+                            chunk = file.read(MAX_PAYLOAD_SIZE)
                             break
 
                     except timeout:
@@ -114,3 +108,15 @@ class SaWClient(UDPClient):
 
                 logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size)
         logger.log_upload_success(path, args)
+
+
+    def build_payload_message(self, current_seq, chunk):
+        data = b''
+        # packet sequence number
+        data += current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+        # chunk size
+        data += len(chunk).to_bytes(PAYLOAD_SIZE_BYTES, byteorder="big")
+        # chunk
+        data += chunk
+        data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
+        return data

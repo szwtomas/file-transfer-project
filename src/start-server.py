@@ -16,7 +16,7 @@ def main(host, port, storage, protocol, args):
         server = Server(host, port, storage, args)
     elif protocol.lower() == "saw":
         log_saw()
-        server = SAWServer(host, port, storage, args)
+        server = SAWServer(host, port, storage)
     elif protocol.lower() == "gbn":
         log_gbn()
         server = GBNServer(host, port, storage, args)
