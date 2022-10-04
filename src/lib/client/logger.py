@@ -22,18 +22,32 @@ def init_logger(logging_file):
 
 
 ##############################################################################
+# Log protocol
+def log_tcp():
+    logging.info(f"Starting file transfer with TCP")
+
+
+def log_saw():
+    logging.info(f"Starting file transfer with Stop and Wait (UDP)")
+
+
+def log_gbn():
+    logging.info(f"Starting file transfer with Go Back N (UDP)")
+
+
+##############################################################################
 # Upload logs
 def log_send_upload_request(file_name, args):
     if args.verbose:
         logging.info(f"Request sent to upload file: {file_name}")
-        print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
+        print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
               f"{COLOR_END} - Request to upload '{file_name}' sent")
 
 
 def log_start_upload(args):
     if not args.quiet:
         logging.info(f"Starting uploading...")
-        print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
+        print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
               f"{COLOR_END} - Starting uploading...")
 
 
@@ -44,7 +58,7 @@ def log_packet_seq_number(seq_number, args):
 
 def log_upload_success(file_name, args):
     logging.info(f"Finished uploading file: {file_name}")
-    print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
+    print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
           f"{COLOR_END} - Uploaded {file_name} succesfully")
 
 
@@ -67,13 +81,13 @@ def log_not_enough_space_error(file_name, args):
 def log_send_download_request(file_name, args):
     if args.verbose:
         logging.info(f"Request sent to download file: {file_name}")
-        print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
+        print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
               f"{COLOR_END} - Request to download '{file_name}' sent")
 
 
 def log_download_success(file_name, args):
     logging.info("Finished downloading file")
-    print(f"{COLOR_BOLD}{COLOR_GREEN}[INFO]"
+    print(f"{COLOR_BOLD}{COLOR_BLUE}[INFO]"
           f"{COLOR_END} - Downloaded {file_name} successfully")
 
 
