@@ -7,6 +7,7 @@ def start_logging(protocol_logger):
     init_logger(LOG_FILE_PATH)
     protocol_logger()
 
+
 def main(host, port, storage, protocol, args, protocol_server_factory):
     init_logger(LOG_FILE_PATH)
     start_logging(protocol_server_factory.get_protocol_logger(protocol))

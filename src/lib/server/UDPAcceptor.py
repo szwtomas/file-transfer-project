@@ -35,12 +35,21 @@ class UDPAcceptor(threading.Thread):
             self.remove_dead_connections()
 
 
+    def remove_dead_connections(self):
+        for conn in self.connections:
+            if not self.connections[conn].is_alive():
+                print(f"KILLING CONNECTION OF ADDRESS: {conn}")
+                del self.connections[conn]
+
+
+    def stop_running(self):
+        self.stop_all_connections()
+        self.connections = {}
+        self.socket.close()
+
+
     def create_connection_if_not_exists(self, client_address):
         if client_address not in self.connections:
             self.connections[client_address] = UDPConnection(client_address, self.socket, self.fs_root, self.protocol)
             self.connections[client_address].start()
 
-
-    def remove_dead_connections(self):
-        # TODO: Iterate all connections and check last message time and remove dead connections or something
-        return True

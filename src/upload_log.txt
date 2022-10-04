@@ -1,3 +1,0 @@
-[2022-10-04 12:27:00] [INFO] Starting file transfer with Stop and Wait (UDP)
-[2022-10-04 12:27:00] [INFO] Starting uploading...
-[2022-10-04 12:28:56] [INFO] Finished uploading file: fotito2.jpg

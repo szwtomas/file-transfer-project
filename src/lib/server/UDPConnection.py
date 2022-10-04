@@ -3,7 +3,7 @@ import threading
 from collections import deque
 import time
 
-from lib.client.constants import MAX_WAITING_TIME
+from lib.client.constants import SAW_CONNECTION_MAX_TIME_WITHOUT_MESSAGES
 from lib.server.gbn.GBNFileReceiver import GBNFileReceiver
 from lib.server.gbn.GBNFileSender import GBNFileSender
 from .saw.message_utils import read_until_expected_seq_number
@@ -12,6 +12,7 @@ from .metadata.MetadataParser import MetadataParser
 from .exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedException
 from .saw.SAWFileSender import SAWFileSender
 from lib.server.saw.SAWFileReceiver import SAWFileReceiver
+import time
 
 class UDPConnection(threading.Thread):
 
@@ -21,6 +22,7 @@ class UDPConnection(threading.Thread):
         self.socket = socket
         self.fs_root = fs_root
         self.message_queue = deque()
+        self.last_received_message_timestamp = time.time()
         self.metadata_parser = MetadataParser()
         if protocol == "saw":
             self.file_sender = SAWFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
@@ -34,16 +36,19 @@ class UDPConnection(threading.Thread):
 
         
 
-    def read_message_from_queue(self): # si queremos que sea bloqueante tiene que estar en while
+    def read_message_from_queue(self):
         print("espero a leer mensaje")
         timer = time.time()
+
         while True:
             if time.time() - timer > 20:
                 raise UDPMessageNotReceivedException("Timeout")
             if len(self.message_queue) > 0:
                 print("desencolo mensaje")
-                return self.message_queue.popleft()
-            # time.sleep(0.01)
+                message = self.message_queue.popleft()
+                self.last_received_message_timestamp = time.time()
+                return message
+
 
     def enqueue_message(self, message):
         print("encolo mensaje")
@@ -88,13 +93,21 @@ class UDPConnection(threading.Thread):
     def handle_download(self, metadata):
         print(f"Handling download for metadata: {metadata}")
         self.file_sender.send_file(metadata)
-    
+
+
     def handle_upload(self, metadata):
         print(f"Handling upload for metadata: {metadata}")
         self.file_receiver.receive_file(metadata)
 
+
     def is_metadata_message(self, data):
         return int.from_bytes(data[0:4], "big") == 0
 
+
     def send_message_to_client(self, data):
         self.socket.sendto(data, self.client_address)
+
+
+    def is_alive(self) -> bool:
+        return time.time() - self.last_received_message_timestamp < SAW_CONNECTION_MAX_TIME_WITHOUT_MESSAGES
+

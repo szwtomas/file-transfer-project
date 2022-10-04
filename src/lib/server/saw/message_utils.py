@@ -2,6 +2,7 @@ import time
 from ..constants import PAYLOAD_SIZE_BYTES, PACKET_SEQUENCE_BYTES, PACKET_SIZE
 from ..exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedException
 
+
 def read_until_expected_seq_number(read_message, expected_seq_number):
 
     message = read_message()
