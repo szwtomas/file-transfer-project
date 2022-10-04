@@ -5,4 +5,4 @@
 # 2. python3 download-file.py -h
 
 cd src
-python3 download-file.py gbn -n fotito2.jpg
+python3 download-file.py gbn -n videito.mp4

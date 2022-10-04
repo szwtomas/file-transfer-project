@@ -53,7 +53,7 @@ class GBNFileSender:
                 next_seq_to_send = last_acked_recv + GBN_WINDOW_SIZE
 
                 last_ack_time = time.time()
-                while time.time() - last_ack_time < 2:
+                while time.time() - last_ack_time < 1:
                     try:
                         acknowledge = self.read_message()
                         recv_seq_num = int.from_bytes(acknowledge[:PACKET_SEQUENCE_BYTES], "big") # cut padding

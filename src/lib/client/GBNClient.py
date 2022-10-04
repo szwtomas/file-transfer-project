@@ -29,7 +29,7 @@ class GBNClient(UDPClient):
                     logger.log_connection_failed()
                     return
                 try:
-                    self.socket.settimeout(5)
+                    self.socket.settimeout(1)
                     response, _ = self.socket.recvfrom(PACKET_SIZE)
                     last_ack = time.time()
                     is_error, seq_num, payload = self.parse_download_response(response)
@@ -91,7 +91,7 @@ class GBNClient(UDPClient):
                 next_seq_to_send = last_acked_recv + GBN_WINDOW_SIZE
 
                 last_ack_time = time.time()
-                while time.time() - last_ack_time < 2:
+                while time.time() - last_ack_time < 1:
                     try:
                         self.socket.settimeout(3)
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
