@@ -1,7 +1,10 @@
 import os
+from re import A
+
 from lib.server.saw.message_utils import build_ack_message
 from ..exceptions.InvalidPathException import InvalidPathException
 from ..exceptions.FileSizeNotSupportedException import FileSizeNotSupportedException
+from ..file_transfer.utils import is_valid_path_syntax
 from ..constants import MAX_FILE_SIZE_SUPPORTED_IN_BYTES, ERROR_BYTES, PACKET_SIZE, PACKET_SEQUENCE_BYTES
 
 
@@ -12,7 +15,7 @@ class SAWFileReceiver:
         self.send_message = send_message
 
     def receive_file(self, metadata):
-        path = self.get_path()
+        path = f"{self.fs_root}/{metadata.get_path()}"
         file_size = metadata.get_file_size()
         print('verify file size')
         self.verify_file_size(file_size)
@@ -30,7 +33,7 @@ class SAWFileReceiver:
                         ack = build_ack_message(file_size)
                         self.send_message(ack)
                         continue
-
+                    # chequear que el seguence number sea el esperado
                     if seq_number != current_seq:
                         ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, "big")
                     else:
@@ -53,19 +56,15 @@ class SAWFileReceiver:
 
     
     def verify_path(self, path):
-        if not os.path.isfile(path):
+        if not os.path.isfile(path) or not is_valid_path_syntax(path):
             self.send_message(self.get_invalid_operation_message())
             raise InvalidPathException(f"SAW File Receiver, invalid path: {path}")
         
 
     def get_invalid_operation_message(self):
-        seq_number = 0
+        seq_number = 0 
         data = b"" + seq_number.to_bytes(PACKET_SEQUENCE_BYTES, "big") + ERROR_BYTES
-        data += b"\x00" * (PACKET_SIZE - len(data)) # Fills remaining bytes with 0
+        # padding
+        data += b"\x00" * (PACKET_SIZE - len(data))
         return data
-
-    
-    def get_path(self, metadata):
-        file_path = metadata.get_path()
-        return f"{self.fs_root}/{file_path}"
 

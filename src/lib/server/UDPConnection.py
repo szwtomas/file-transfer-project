@@ -1,8 +1,9 @@
 # from concurrent.futures import thread
 import threading
-import time
 from collections import deque
-from lib.client.constants import SAW_CONNECTION_MAX_TIME_WITHOUT_MESSAGES
+import time
+
+from lib.client.constants import MAX_WAITING_TIME
 from lib.server.gbn.GBNFileReceiver import GBNFileReceiver
 from lib.server.gbn.GBNFileSender import GBNFileSender
 from .saw.message_utils import read_until_expected_seq_number
@@ -12,11 +13,6 @@ from .exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedExce
 from .saw.SAWFileSender import SAWFileSender
 from lib.server.saw.SAWFileReceiver import SAWFileReceiver
 
-
-READ_QUEUE_TIMEOUT = 20
-QUEUE_READ_WAITING_TIME_IN_SECONDS = 0.5
-
-
 class UDPConnection(threading.Thread):
 
     def __init__(self, client_address, socket, fs_root, protocol):
@@ -25,7 +21,6 @@ class UDPConnection(threading.Thread):
         self.socket = socket
         self.fs_root = fs_root
         self.message_queue = deque()
-        self.last_received_message_timestamp = time.time()
         self.metadata_parser = MetadataParser()
         if protocol == "saw":
             self.file_sender = SAWFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
@@ -39,17 +34,16 @@ class UDPConnection(threading.Thread):
 
         
 
-    def read_message_from_queue(self):
+    def read_message_from_queue(self): # si queremos que sea bloqueante tiene que estar en while
+        print("espero a leer mensaje")
         timer = time.time()
         while True:
-            if time.time() - timer > READ_QUEUE_TIMEOUT:
-                raise UDPMessageNotReceivedException("Queue read timeouted")
+            if time.time() - timer > 20:
+                raise UDPMessageNotReceivedException("Timeout")
             if len(self.message_queue) > 0:
-                message = self.message_queue.popleft()
-                self.last_received_message_timestamp = time.time()
-                return message
-            time.sleep(QUEUE_READ_WAITING_TIME_IN_SECONDS)
-
+                print("desencolo mensaje")
+                return self.message_queue.popleft()
+            # time.sleep(0.01)
 
     def enqueue_message(self, message):
         print("encolo mensaje")
@@ -87,26 +81,20 @@ class UDPConnection(threading.Thread):
         while not self.is_metadata_message(initial_message) and retries < MAX_RETRIES:
             initial_message = self.read_message_from_queue()
             retries += 1
-
+        
         return initial_message
 
 
     def handle_download(self, metadata):
+        print(f"Handling download for metadata: {metadata}")
         self.file_sender.send_file(metadata)
-
-
+    
     def handle_upload(self, metadata):
+        print(f"Handling upload for metadata: {metadata}")
         self.file_receiver.receive_file(metadata)
-
 
     def is_metadata_message(self, data):
         return int.from_bytes(data[0:4], "big") == 0
 
-
     def send_message_to_client(self, data):
         self.socket.sendto(data, self.client_address)
-
-
-    def is_alive(self) -> bool:
-        return time.time() - self.last_received_message_timestamp < SAW_CONNECTION_MAX_TIME_WITHOUT_MESSAGES
-

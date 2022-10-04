@@ -4,6 +4,7 @@ from re import A
 from lib.server.saw.message_utils import build_ack_message
 from ..exceptions.InvalidPathException import InvalidPathException
 from ..exceptions.FileSizeNotSupportedException import FileSizeNotSupportedException
+from ..file_transfer.utils import is_valid_path_syntax
 from ..constants import MAX_FILE_SIZE_SUPPORTED_IN_BYTES, ERROR_BYTES, PACKET_SIZE, PACKET_SEQUENCE_BYTES, PAYLOAD_SIZE_BYTES
 
 
@@ -58,7 +59,7 @@ class GBNFileReceiver:
 
     
     def verify_path(self, path):
-        if not os.path.isfile(path):
+        if not os.path.isfile(path) or not is_valid_path_syntax(path):
             self.send_message(self.get_invalid_operation_message())
             raise InvalidPathException(f"SAW File Receiver, invalid path: {path}")
         
