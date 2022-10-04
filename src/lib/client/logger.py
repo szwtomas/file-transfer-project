@@ -15,7 +15,7 @@ COLOR_END = '\033[0m'
 def init_logger(logging_file):
     logging.basicConfig(filename=logging_file,
                         filemode='w',
-                        format="[%(asctime)s] [%(levelname)s] "
+                        format="[%(asctime)s.%(msecs)03d] [%(levelname)s] "
                                "%(message)s",
                         datefmt='%Y-%m-%d %H:%M:%S',
                         level=logging.INFO)
