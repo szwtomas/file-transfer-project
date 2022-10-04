@@ -153,5 +153,11 @@ def log_progress(bytes_sent, total_bytes):
         f": [{progress_bar}] "
         f"{COLOR_BOLD}{percents}%{COLOR_END}\r")
     sys.stdout.flush()
-    if bytes_sent == total_bytes:
+    if bytes_sent >= total_bytes:
+        progress_bar = '=' * progress + '.' * (50 - progress)
+        sys.stdout.write(
+            f"{COLOR_GREEN}[PROGRESS]{COLOR_END}"
+            f": [{progress_bar}] "
+            f"{COLOR_BOLD}{percents}%{COLOR_END}\r")
+        sys.stdout.flush()
         print()
