@@ -45,7 +45,7 @@ class UDPClient:
                 file_size = response[PACKET_SEQUENCE_BYTES + OPERATION_BYTES:PACKET_SEQUENCE_BYTES + 1 + FILE_SIZE_BYTES] #FIXME: ta bien esto? no
 
             return response[PACKET_SEQUENCE_BYTES], int.from_bytes(file_size, byteorder="big")
-        return None, 0  # FIXME: add to logger that program timeouted
+        return None, 0
     
     def parse_download_response(self, response):
         # Parse response packet and check if payload size is valid

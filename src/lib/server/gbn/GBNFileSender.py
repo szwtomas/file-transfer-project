@@ -46,7 +46,6 @@ class GBNFileSender:
             while last_acked_recv < expected_final_ack:
                 if  time.time() - global_timer > MAX_WAITING_TIME * 4:
                     print("timed out waiting for ack, exiting program")
-                    #FIXME: logggg
                     return
 
                 self.send_n_packets(last_acked_recv, GBN_WINDOW_SIZE, file)

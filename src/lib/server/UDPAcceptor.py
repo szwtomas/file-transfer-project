@@ -34,7 +34,8 @@ class UDPAcceptor(threading.Thread):
             print(f"Enqueued to connection of address: {client_address} , message of bytes: {data[:16]}")
 
             number_of_connections_killed = self.remove_dead_connections()
-            print(f"{number_of_connections_killed} where killed")
+            if number_of_connections_killed > 0:
+                print(f"{number_of_connections_killed} where killed")
 
         self.close_connections()
         self.socket.close()

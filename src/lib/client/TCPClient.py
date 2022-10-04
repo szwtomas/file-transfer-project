@@ -38,7 +38,6 @@ class TCPClient:
         with open(complete_path, 'wb') as file:
             while file_size > 0:
                 # TCP Does not use sequence numbers, so we can discard them
-                # FIXME: should add timeout?
                 try:
                     self.socket.settimeout(SOCKET_TIMEOUT)
                     message_data = self.socket.recv(PACKET_SIZE)
