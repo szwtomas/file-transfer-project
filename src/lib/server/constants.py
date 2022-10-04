@@ -1,3 +1,9 @@
+LOG_FILE_PATH = "server_log.txt"
+
+TCP_PROTOCOL = "tcp"
+SAW_PROTOCOL = "saw"
+GBN_PROTOCOL = "gbn"
+
 LOCALHOST = "127.0.0.1"
 LISTEN_PORT = 7878
 

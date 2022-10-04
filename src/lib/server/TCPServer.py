@@ -1,7 +1,7 @@
 from .Acceptor import Acceptor
 from .user_commands import QUIT, QUIT_ABREVIATED
 
-class Server:
+class TCPServer:
 
     def __init__(self, host, port, fs_root):
         self.acceptor = None
