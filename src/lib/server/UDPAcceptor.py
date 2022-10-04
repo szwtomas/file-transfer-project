@@ -1,9 +1,8 @@
 from socket import timeout
-from .UDPConnection import UDPConnection
 import threading
+from .UDPConnection import UDPConnection
+from .constants import ACCEPT_TIMEOUT_IN_SECONDS, MAX_BUF_SIZE
 
-ACCEPT_TIMEOUT_IN_SECONDS = 0.5
-MAX_BUF_SIZE = 4096
 
 class UDPAcceptor(threading.Thread):
 
