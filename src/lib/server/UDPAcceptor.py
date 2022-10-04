@@ -33,7 +33,8 @@ class UDPAcceptor(threading.Thread):
             self.connections[client_address].enqueue_message(data)
             print(f"Enqueued to connection of address: {client_address} , message of bytes: {data[:16]}")
 
-            self.remove_dead_connections()
+            number_of_connections_killed = self.remove_dead_connections()
+            print(f"{number_of_connections_killed} where killed")
 
         self.close_connections()
         self.socket.close()
@@ -59,9 +60,19 @@ class UDPAcceptor(threading.Thread):
 
 
     def remove_dead_connections(self):
-        for conn in self.connections:
-            if not self.connections[conn].is_alive():
-                print(f"Connection for client with address: {conn} is dead, removing it")
-                del self.connections[conn]
+        connections_to_kill = []
+        try:
+            
+            for conn_addr in self.connections:
+                if not self.connections[conn_addr].is_alive():
+                    connections_to_kill.append(conn_addr)
+
+            for conn_addr in connections_to_kill:
+                print(f"Connection for client with address: {conn_addr} is dead, removing it")
+                del self.connections[conn_addr]
+        except Exception as e:
+            print("Failed to remove dead connection")
+
+        return len(connections_to_kill)
 
 

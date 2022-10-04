@@ -20,7 +20,6 @@ class FileReceiver:
         - chunk_size bytes: payload 
         '''
     
-        self.validator.validate_path_syntax(socket, metadata.get_path())
         self.validator.verify_valid_file_size(socket, metadata.get_file_size())
         self.send_ack_message(socket)
 
