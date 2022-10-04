@@ -1,8 +1,6 @@
-from logging import exception
 import os
 from socket import SOCK_DGRAM, socket, AF_INET
 from socket import timeout
-from termios import ECHOE
 from lib.client.constants import *
 import time
 from lib.client.UDPClient import UDPClient
@@ -34,19 +32,25 @@ class SaWClient(UDPClient):
                     logger.log_connection_failed()
                     return
                 try:
-                    self.socket.settimeout(2)
+                    self.socket.settimeout(0.5)
                     response, _ = self.socket.recvfrom(PACKET_SIZE)
                     print("current seq", current_seq)
                     print('responce', response[:16])
                     last_ack = time.time()
                     is_error, packet_seq, payload = self.parse_download_response(response)
                 except timeout:
+                    print('dio timeout, mando ack nuevo', current_seq)
+                    ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+                    ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
+                    self.send_acknowledge( ack, server_ip, port)
                     logger.log_server_not_responding_error(args)
                     continue
                 if is_error:
                     logger.log_max_payload_size_exceedes_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
-                elif packet_seq != current_seq:
+                elif packet_seq < current_seq:
+                    logger.log_packet_sequence_number_error(args)
+                elif packet_seq > current_seq:
                     logger.log_packet_sequence_number_error(args)
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                 else:
@@ -54,10 +58,14 @@ class SaWClient(UDPClient):
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
                     file.write(payload)
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
-                self.socket.sendto(ack, (server_ip, port))
+                self.send_acknowledge( ack, server_ip, port)
                 logger.log_progress((current_seq - 1) * MAX_PAYLOAD_SIZE, file_size)
             print("SALI DEL WHILE")
         logger.log_download_success(path, args)
+
+    def send_acknowledge(self, ack, server_ip, port):
+        for _ in range(5):
+            self.socket.sendto(ack, (server_ip, port))
 
     def start_upload(self, server_ip, path, port, args):
         complete_path = ROOT_FS_PATH + path
@@ -89,7 +97,7 @@ class SaWClient(UDPClient):
                 data += chunk
                 data += int(0).to_bytes(PACKET_SIZE - len(data), "big") # padding
                 
-                print(f"data {data}")
+                print(f"data {data[:16]}")
 
                 last_ack = time.time()
                 while True:
@@ -101,7 +109,7 @@ class SaWClient(UDPClient):
                     self.socket.sendto(data, (server_ip, port))
                     print('lo enviamos')
                     try:
-                        self.socket.settimeout(2)
+                        self.socket.settimeout(0.5)
                         print("esperamos respuesta")
                         acknowledge, _ = self.socket.recvfrom(PACKET_SIZE)
                         acknowledge = acknowledge[:PACKET_SEQUENCE_BYTES] # cut padding

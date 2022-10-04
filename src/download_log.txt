@@ -1,2 +1,2 @@
-[2022-10-03 23:20:28] [INFO]
-Info: Found file fotito.jpg on server
+[2022-10-04 00:29:19] [INFO]
+Info: Found file prueba3.jpg on server

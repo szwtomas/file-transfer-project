@@ -3,12 +3,16 @@ from ..exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedExc
 
 def read_until_expected_seq_number(read_message, expected_seq_number):
     retries = 0
-    max_retries = 10
+    max_retries = 2
     message = read_message()
     print(f"message read {message[:16]}")
+    print("expected seq number", expected_seq_number)
+    print(f"received seq number {_get_seq_number_from_message(message)}")
     while _get_seq_number_from_message(message) != expected_seq_number and retries < max_retries:
         retries += 1
         message = read_message()
+        print("expected seq number", expected_seq_number)
+        print(f"received seq number {_get_seq_number_from_message(message)}")
         print(f"message read {message[:16]}, retry number {retries}")
     
     if retries == max_retries:
@@ -25,11 +29,13 @@ def send_message_until_acked(read_message, send_message, seq_number, data):
     max_retries = 10
     while retry_count < max_retries:
         print('envio data')
-        send_message(data)
+        for i in range(10):
+            send_message(data)
         try:
             data = read_until_expected_seq_number(read_message, seq_number + 1)
             return data
         except UDPMessageNotReceivedException:
+            print('no recibí respuesta, vuelvo a enviar')
             retry_count += 1
             continue
     

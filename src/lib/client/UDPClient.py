@@ -1,5 +1,6 @@
 import os
 import socket
+from socket import timeout
 import time
 from lib.client.constants import *
 #from constants import DOWNLOAD, FILE_SIZE_BYTES, MAX_PAYLOAD_SIZE, MAX_WAITING_TIME, PACKET_SEQUENCE_BYTES, PACKET_SIZE, PATH_SIZE_BYTES, PAYLOAD_SIZE_BYTES, SERVER_PORT, UPLOAD
@@ -24,7 +25,7 @@ class UDPClient:
         if operation == UPLOAD:
             message += os.path.getsize(ROOT_FS_PATH + path).to_bytes(FILE_SIZE_BYTES, byteorder="big")
         message += int(0).to_bytes(PACKET_SIZE - len(message), "big") # padding
-        print(f"request {message}")
+        print(f"request {message[:16]}")
         return message
 
     def make_request(self, server_ip, path, type):
@@ -33,12 +34,12 @@ class UDPClient:
         while time.time() - start_timer < MAX_WAITING_TIME:
             self.socket.sendto(self.get_request(path, type), (server_ip, SERVER_PORT))
             try:
-                self.socket.settimeout(1)
+                self.socket.settimeout(0.5)
                 response, _ = self.socket.recvfrom(PACKET_SIZE)
                 if not int.from_bytes(response[:PACKET_SEQUENCE_BYTES], "big") == 0:
                     start_timer = time.time()
                     continue
-            except socket.timeout:
+            except timeout:
                 print("Server is not responding")
                 continue
             if type == DOWNLOAD and response[PACKET_SEQUENCE_BYTES] == 0:

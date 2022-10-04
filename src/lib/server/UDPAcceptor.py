@@ -2,7 +2,7 @@ from socket import timeout
 from .UDPConnection import UDPConnection
 import threading
 
-ACCEPT_TIMEOUT_IN_SECONDS = 2
+ACCEPT_TIMEOUT_IN_SECONDS = 0.5
 MAX_BUF_SIZE = 1024
 
 class UDPAcceptor(threading.Thread):
@@ -18,10 +18,10 @@ class UDPAcceptor(threading.Thread):
 
     def run(self):
         print("UDP Acceptor running")
-        self.socket.settimeout(ACCEPT_TIMEOUT_IN_SECONDS)
         print(f"UDP Acceptor socket timeout set to: {ACCEPT_TIMEOUT_IN_SECONDS} seconds")
         while True:
             try:
+                self.socket.settimeout(ACCEPT_TIMEOUT_IN_SECONDS)
                 data, client_address = self.socket.recvfrom(MAX_BUF_SIZE)
             except timeout:
                 print("UDP Acceptor timeouted")
@@ -29,7 +29,7 @@ class UDPAcceptor(threading.Thread):
 
             self.create_connection_if_not_exists(client_address)
             self.connections[client_address].enqueue_message(data)
-            print(f"Enqueued to connection of address: {client_address} , message of bytes: {data}")
+            print(f"Enqueued to connection of address: {client_address} , message of bytes: {data[:16]}")
 
             self.remove_dead_connections()
 

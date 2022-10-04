@@ -27,7 +27,7 @@ class SAWFileReceiver:
                 print(f"About to receive file: {path}")
                 while file_size > 0:
                     packet = self.read_message()
-                    print(f"PACKET {packet}")
+                    print(f"PACKET {packet[:16]}")
                     seq_number = int.from_bytes(packet[:PACKET_SEQUENCE_BYTES], byteorder="big")
                     if seq_number == 0:
                         ack = build_ack_message(file_size)

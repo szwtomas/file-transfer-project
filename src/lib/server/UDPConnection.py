@@ -27,12 +27,12 @@ class UDPConnection(threading.Thread):
         print("espero a leer mensaje")
         timer = time.time()
         while True:
-            if time.time() - timer > MAX_WAITING_TIME:
+            if time.time() - timer > 20:
                 raise UDPMessageNotReceivedException("Timeout")
             if len(self.message_queue) > 0:
                 print("desencolo mensaje")
                 return self.message_queue.popleft()
-            time.sleep(0.01)
+            # time.sleep(0.01)
 
     def enqueue_message(self, message):
         print("encolo mensaje")
