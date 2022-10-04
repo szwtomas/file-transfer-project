@@ -30,7 +30,7 @@ class UDPConnection(threading.Thread):
             self.file_receiver = GBNFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
         else:
             print(f"Protocol {protocol} not supported")
-            #FIXME: logear
+            # TODO: logear
 
 
     def read_message_from_queue(self): # si queremos que sea bloqueante tiene que estar en while

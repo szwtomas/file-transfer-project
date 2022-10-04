@@ -15,17 +15,18 @@ class UDPAcceptor(threading.Thread):
         self.socket = socket
         self.connections = {}
         self.protocol = protocol
+        self.should_run = True
 
 
     def run(self):
         print("UDP Acceptor running")
         print(f"UDP Acceptor socket timeout set to: {ACCEPT_TIMEOUT_IN_SECONDS} seconds")
-        while True:
+        self.should_run = True
+        while self.should_run:
             try:
                 self.socket.settimeout(ACCEPT_TIMEOUT_IN_SECONDS)
                 data, client_address = self.socket.recvfrom(MAX_BUF_SIZE)
             except timeout:
-                print("UDP Acceptor timeouted")
                 continue
 
             self.create_connection_if_not_exists(client_address)
@@ -34,6 +35,9 @@ class UDPAcceptor(threading.Thread):
 
             self.remove_dead_connections()
 
+        self.close_connections()
+        self.socket.close()
+        
 
     def create_connection_if_not_exists(self, client_address):
         if client_address not in self.connections:
@@ -41,6 +45,21 @@ class UDPAcceptor(threading.Thread):
             self.connections[client_address].start()
 
 
+    def close_connections(self):
+        for conn in self.connections:
+            self.connections[conn].join()
+
+
+    def is_running(self):
+        return self.should_run
+
+
+    def stop_running(self):
+        self.should_run = False
+
+
     def remove_dead_connections(self):
         # TODO: Iterate all connections and check last message time and remove dead connections or something
         return True
+
+

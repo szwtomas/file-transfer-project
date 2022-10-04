@@ -25,6 +25,7 @@ def main(host, port, storage, protocol, args):
         return
 
     server.run()
+    print("Server stopped")
 
 
 if __name__ == "__main__":
