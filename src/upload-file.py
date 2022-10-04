@@ -12,15 +12,15 @@ def main(args):
 
     path = args.src + args.name
 
-    if args.protocol == "TCP":
+    if args.protocol.lower() == "tcp":
         tcp_client = TCPClient()
         tcp_client.start_upload(args.host, path, args.port, args)
 
-    elif args.protocol == "SAW":
+    elif args.protocol.lower() == "saw":
         saw_client = SaWClient()
         saw_client.start_upload(args.host, path, args.port, args)
 
-    elif args.protocol == "GBN":
+    elif args.protocol.lower() == "gbn":
         gbn_client = GBNClient()
         gbn_client.start_upload(args.host, path, args.port, args)
 

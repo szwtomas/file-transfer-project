@@ -5,4 +5,4 @@
 # 2. python3 upload-file.py -h
 
 cd src
-python3 upload-file.py TCP -n fotito.jpg
+python3 upload-file.py gbn -n test.txt

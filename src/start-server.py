@@ -1,3 +1,4 @@
+from lib.server.GBNServer import GBNServer
 from lib.server.Server import Server
 from lib.server.SAWServer import SAWServer
 from lib.server.parsing import server_args
@@ -9,6 +10,8 @@ def main(host, port, storage, protocol):
         server = Server(host, port, storage)
     if protocol.lower() == "saw":
         server = SAWServer(host, port, storage)
+    if protocol.lower() == "gbn":
+        server = GBNServer(host, port, storage)
     server.run()
 
 
