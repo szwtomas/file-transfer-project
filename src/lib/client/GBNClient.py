@@ -24,7 +24,8 @@ class GBNClient(UDPClient):
         last_ack = time.time()
         with open(complete_path, 'wb') as file:
             current_seq = 1
-            while file_size > (current_seq - 1) * MAX_PAYLOAD_SIZE:
+            remaining_bytes = file_size
+            while remaining_bytes > 0:
                 if time.time() - last_ack > MAX_WAITING_TIME:
                     logger.log_connection_failed()
                     return
@@ -51,6 +52,7 @@ class GBNClient(UDPClient):
                 else:
                     current_seq += 1
                     ack = current_seq.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
+                    remaining_bytes -= len(payload)
                     file.write(payload)
                     
                 ack += int(0).to_bytes(PACKET_SIZE - len(ack), "big") # padding
