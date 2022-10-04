@@ -1,1 +1,1 @@
-[2022-10-04 12:26:57] [INFO] Starting Stop and Wait Server (UDP)
+[2022-10-04 16:01:08] [INFO] Starting Go Back N Server (UDP)

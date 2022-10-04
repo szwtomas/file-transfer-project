@@ -33,7 +33,7 @@ class UDPClient:
         while time.time() - start_timer < MAX_WAITING_TIME:
             self.socket.sendto(self.get_request(path, type), (server_ip, SERVER_PORT))
             try:
-                self.socket.settimeout(0.5)
+                self.socket.settimeout(1)
                 response, _ = self.socket.recvfrom(PACKET_SIZE)
                 if not int.from_bytes(response[:PACKET_SEQUENCE_BYTES], "big") == 0:
                     start_timer = time.time()
