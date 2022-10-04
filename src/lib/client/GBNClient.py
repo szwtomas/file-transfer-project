@@ -126,7 +126,6 @@ class GBNClient(UDPClient):
         for seq_num in range(initial, initial + n):
             data = b''
             # sequence number
-            print("sending seq", seq_num)
             data += seq_num.to_bytes(PACKET_SEQUENCE_BYTES, byteorder="big")
             file.seek((seq_num - 1) * MAX_PAYLOAD_SIZE)
             chunk = file.read(MAX_PAYLOAD_SIZE)

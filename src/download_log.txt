@@ -1,3 +1,3 @@
-[2022-10-04 11:19:04] [INFO] Starting file transfer with Go Back N (UDP)
-[2022-10-04 11:19:05] [INFO] Info: Found file videito.mp4 on server
-[2022-10-04 11:19:16] [INFO] Finished downloading file
+[2022-10-04 12:24:23] [INFO] Starting file transfer with Stop and Wait (UDP)
+[2022-10-04 12:24:23] [INFO] Info: Found file fotito2.jpg on server
+[2022-10-04 12:25:17] [INFO] Finished downloading file

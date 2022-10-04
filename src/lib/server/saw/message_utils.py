@@ -1,23 +1,20 @@
+import time
 from ..constants import PAYLOAD_SIZE_BYTES, PACKET_SEQUENCE_BYTES, PACKET_SIZE
 from ..exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedException
 
 def read_until_expected_seq_number(read_message, expected_seq_number):
-    retries = 0
-    max_retries = 2
+
     message = read_message()
     print(f"message read {message[:16]}")
     print("expected seq number", expected_seq_number)
     print(f"received seq number {_get_seq_number_from_message(message)}")
-    while _get_seq_number_from_message(message) != expected_seq_number and retries < max_retries:
-        retries += 1
+    initial_time = time.time()
+    while _get_seq_number_from_message(message) != expected_seq_number:
+        if time.time() - initial_time > 0.5:
+            raise UDPMessageNotReceivedException(f"Message of sequence number: {expected_seq_number} was not received")
         message = read_message()
         print("expected seq number", expected_seq_number)
         print(f"received seq number {_get_seq_number_from_message(message)}")
-        print(f"message read {message[:16]}, retry number {retries}")
-    
-    if retries == max_retries:
-        raise UDPMessageNotReceivedException(f"Message of sequence number: {expected_seq_number} was not received")
-
     return message
 
 def _get_seq_number_from_message(data):
@@ -25,22 +22,19 @@ def _get_seq_number_from_message(data):
 
 
 def send_message_until_acked(read_message, send_message, seq_number, data):
-    retry_count = 0
-    max_retries = 10
-    while retry_count < max_retries:
+    initial_time = time.time()
+    while time.time() - initial_time < 0.5:
         print('envio data')
-        # for i in range(3):
         send_message(data)
         try:
             data = read_until_expected_seq_number(read_message, seq_number + 1)
             return data
         except UDPMessageNotReceivedException:
             print('no recibí respuesta, vuelvo a enviar')
-            retry_count += 1
             continue
     
     print("devuelvo False")
-    return False
+    return None
 
 def get_empty_bytes(amount):
     empty = 0

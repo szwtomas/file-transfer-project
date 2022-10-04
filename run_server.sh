@@ -5,4 +5,4 @@
 # 2. python3 start-server.py -h
 
 cd src
-python3 start-server.py gbn
+python3 start-server.py saw

@@ -5,5 +5,5 @@
 # 2. python3 upload-file.py -h
 
 cd src
-python3 upload-file.py gbn -n videito.mp4
+python3 upload-file.py saw -n fotito2.jpg
 
