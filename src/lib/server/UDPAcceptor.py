@@ -7,13 +7,14 @@ MAX_BUF_SIZE = 4096
 
 class UDPAcceptor(threading.Thread):
 
-    def __init__(self, host, port, fs_root, socket):
+    def __init__(self, host, port, fs_root, socket, protocol):
         threading.Thread.__init__(self)
         self.host = host
         self.port = port
         self.fs_root = fs_root
         self.socket = socket
         self.connections = {}
+        self.protocol = protocol
 
 
     def run(self):
@@ -36,7 +37,7 @@ class UDPAcceptor(threading.Thread):
 
     def create_connection_if_not_exists(self, client_address):
         if client_address not in self.connections:
-            self.connections[client_address] = UDPConnection(client_address, self.socket, self.fs_root)
+            self.connections[client_address] = UDPConnection(client_address, self.socket, self.fs_root, self.protocol)
             self.connections[client_address].start()
 
 

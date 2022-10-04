@@ -4,6 +4,8 @@ from collections import deque
 import time
 
 from lib.client.constants import MAX_WAITING_TIME
+from lib.server.gbn.GBNFileReceiver import GBNFileReceiver
+from lib.server.gbn.GBNFileSender import GBNFileSender
 from .saw.message_utils import read_until_expected_seq_number
 from lib.server.exceptions.MetadataParseException import MetadataParseException
 from .metadata.MetadataParser import MetadataParser
@@ -13,15 +15,24 @@ from lib.server.saw.SAWFileReceiver import SAWFileReceiver
 
 class UDPConnection(threading.Thread):
 
-    def __init__(self, client_address, socket, fs_root):
+    def __init__(self, client_address, socket, fs_root, protocol):
         threading.Thread.__init__(self)
         self.client_address = client_address
         self.socket = socket
         self.fs_root = fs_root
         self.message_queue = deque()
         self.metadata_parser = MetadataParser()
-        self.file_sender = SAWFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
-        self.file_receiver = SAWFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
+        if protocol == "saw":
+            self.file_sender = SAWFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
+            self.file_receiver = SAWFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
+        elif protocol == "gbn":
+            self.file_sender = GBNFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
+            self.file_receiver = GBNFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data))
+        else:
+            print(f"Protocol {protocol} not supported")
+            #FIXME: logear
+
+        
 
     def read_message_from_queue(self): # si queremos que sea bloqueante tiene que estar en while
         print("espero a leer mensaje")

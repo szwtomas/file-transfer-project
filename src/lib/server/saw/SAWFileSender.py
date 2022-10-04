@@ -29,7 +29,7 @@ class SAWFileSender:
         file_size = os.path.getsize(file_path)
         print(f'EL ARHCIVO QUE LEO ES {file_path} y es size es {file_size}')
         ack_message = build_ack_message(file_size)
-        print(ack_message)
+        print(ack_message[0:8])
         print("voy a enviar")
         self.send_message(ack_message)
         current_seq_number = 1

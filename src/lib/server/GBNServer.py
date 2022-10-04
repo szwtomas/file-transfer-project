@@ -15,5 +15,5 @@ class GBNServer():
         self.socket = create_udp_socket()
         address = (self.host, self.port)
         self.socket.bind(address)
-        self.udp_acceptor = UDPAcceptor(self.host, self.port, self.fs_root, self.socket)
+        self.udp_acceptor = UDPAcceptor(self.host, self.port, self.fs_root, self.socket, "gbn")
         self.udp_acceptor.start()
