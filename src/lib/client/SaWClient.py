@@ -13,6 +13,7 @@ class SaWClient(UDPClient):
         self.socket = socket(AF_INET, SOCK_DGRAM)
 
     def start_download(self, server_ip, path, port, args):
+        logger.log_saw()
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
         logger.log_send_download_request(path, args)
         if response == 1:
@@ -62,6 +63,7 @@ class SaWClient(UDPClient):
             self.socket.sendto(ack, (server_ip, port))
 
     def start_upload(self, server_ip, path, port, args):
+        logger.log_saw()
         complete_path = ROOT_FS_PATH + path
         if not os.path.isfile(complete_path):
             logger.log_file_not_found_client_error(path, args)

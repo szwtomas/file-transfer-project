@@ -13,6 +13,7 @@ class GBNClient(UDPClient):
         self.socket = socket(AF_INET, SOCK_DGRAM)
 
     def start_download(self, server_ip, path, port, args):
+        logger.log_gbn()
         complete_path = ROOT_FS_PATH + path
         response, file_size = self.make_request(server_ip, path, DOWNLOAD)
         logger.log_send_download_request(path, args)
@@ -126,6 +127,7 @@ class GBNClient(UDPClient):
 
 
     def start_upload(self, server_ip, path, port, args):
+        logger.log_gbn()
         complete_path = ROOT_FS_PATH + path
         if not os.path.isfile(complete_path):
             logger.log_file_not_found_client_error(complete_path, args)
