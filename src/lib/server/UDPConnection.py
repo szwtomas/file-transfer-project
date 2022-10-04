@@ -1,8 +1,7 @@
 # from concurrent.futures import thread
 import threading
-from collections import deque
 import time
-
+from collections import deque
 from lib.client.constants import SAW_CONNECTION_MAX_TIME_WITHOUT_MESSAGES
 from lib.server.gbn.GBNFileReceiver import GBNFileReceiver
 from lib.server.gbn.GBNFileSender import GBNFileSender
@@ -12,7 +11,11 @@ from .metadata.MetadataParser import MetadataParser
 from .exceptions.UDPMessageNotReceivedException import UDPMessageNotReceivedException
 from .saw.SAWFileSender import SAWFileSender
 from lib.server.saw.SAWFileReceiver import SAWFileReceiver
-import time
+
+
+READ_QUEUE_TIMEOUT = 20
+QUEUE_READ_WAITING_TIME_IN_SECONDS = 0.5
+
 
 class UDPConnection(threading.Thread):
 
@@ -37,17 +40,15 @@ class UDPConnection(threading.Thread):
         
 
     def read_message_from_queue(self):
-        print("espero a leer mensaje")
         timer = time.time()
-
         while True:
-            if time.time() - timer > 20:
-                raise UDPMessageNotReceivedException("Timeout")
+            if time.time() - timer > READ_QUEUE_TIMEOUT:
+                raise UDPMessageNotReceivedException("Queue read timeouted")
             if len(self.message_queue) > 0:
-                print("desencolo mensaje")
                 message = self.message_queue.popleft()
                 self.last_received_message_timestamp = time.time()
                 return message
+            time.sleep(QUEUE_READ_WAITING_TIME_IN_SECONDS)
 
 
     def enqueue_message(self, message):
@@ -86,17 +87,15 @@ class UDPConnection(threading.Thread):
         while not self.is_metadata_message(initial_message) and retries < MAX_RETRIES:
             initial_message = self.read_message_from_queue()
             retries += 1
-        
+
         return initial_message
 
 
     def handle_download(self, metadata):
-        print(f"Handling download for metadata: {metadata}")
         self.file_sender.send_file(metadata)
 
 
     def handle_upload(self, metadata):
-        print(f"Handling upload for metadata: {metadata}")
         self.file_receiver.receive_file(metadata)
 
 

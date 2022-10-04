@@ -30,8 +30,6 @@ class UDPAcceptor(threading.Thread):
 
             self.create_connection_if_not_exists(client_address)
             self.connections[client_address].enqueue_message(data)
-            print(f"Enqueued to connection of address: {client_address} , message of bytes: {data[:16]}")
-
             self.remove_dead_connections()
 
 

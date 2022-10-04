@@ -2,7 +2,6 @@ import os
 from ..sockets.TCPSocket import TCPSocket
 from ..constants import MAX_FILE_SIZE_SUPPORTED_IN_BYTES, ERROR_BYTES
 from ..exceptions import FileDoesNotExistException, FileSizeNotSupportedException, InvalidPathException
-from .utils import is_valid_path_syntax
 
 class FileTransferValidator:
 
@@ -26,10 +25,3 @@ class FileTransferValidator:
             self.send_invalid_operation_message(socket)
             raise FileDoesNotExistException(error_message)
 
-
-    def validate_path_syntax(self, socket, path):
-        if not is_valid_path_syntax(path):
-            error_message = f"Path {path} syntax is invalid"
-            print(error_message)
-            self.send_invalid_operation_message(socket)
-            raise InvalidPathException(error_message)
