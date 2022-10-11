@@ -18,11 +18,12 @@ def server_args():
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-v",
                        "--verbose",
-                       metavar="",
+                       action="store_true",
                        help="increase output verbosity")
+
     group.add_argument("-q",
                        "--quiet",
-                       metavar="",
+                       action="store_true",
                        help="decrease output verbosity")
 
     parser.add_argument("-H",

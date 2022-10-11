@@ -4,17 +4,17 @@
 #$ chmod +x run_hash_check.sh 
 #only env is FILENAME
 
-#prints diff between sha1 hashes of client and server files with the same name
+#prints diff between md5 hashes of client and server files with the same name
 
 cd client_fs_root/
-sha1sum "$1" > ../sha-client.txt
+md5sum "$1" > ../md5-client.txt
 
 cd ..
 cd server_fs_root/
-sha1sum "$1" > ../sha-server.txt
+md5sum "$1" > ../md5-server.txt
 
 cd ..
 
-diff ./sha-client.txt ./sha-server.txt
-rm ./sha-client.txt
-rm ./sha-server.txt
+diff ./md5-client.txt ./md5-server.txt
+rm ./md5-client.txt
+rm ./md5-server.txt

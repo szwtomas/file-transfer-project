@@ -24,6 +24,7 @@ class UDPConnection(threading.Thread):
         self.fs_root = fs_root
         self.message_queue = deque()
         self.metadata_parser = MetadataParser()
+        self.args = args
 
         self.last_message_read_timestamp = time.time()
         if protocol.lower() == SAW_PROTOCOL:
@@ -34,20 +35,6 @@ class UDPConnection(threading.Thread):
             self.file_receiver = GBNFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data), args)
         else:
             raise ProtocolNotSupportedException(f"Protocol {protocol} not supported")
-
-
-    def read_message_from_queue(self):
-
-        self.args = args
-        if protocol == "saw":
-            self.file_sender = SAWFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data), args)
-            self.file_receiver = SAWFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data), args)
-        elif protocol == "gbn":
-            self.file_sender = GBNFileSender(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data), args)
-            self.file_receiver = GBNFileReceiver(fs_root, lambda: self.read_message_from_queue(), lambda data: self.send_message_to_client(data), args)
-        else:
-            logger.log_protocol_error(protocol)
-
 
     def read_message_from_queue(self):
         timer = time.time()

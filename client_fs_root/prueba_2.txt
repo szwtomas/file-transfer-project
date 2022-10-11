@@ -1,0 +1,444 @@
+
+4. TRANSPORT PROTOCOLS
+
+   4.1  USER DATAGRAM PROTOCOL -- UDP
+
+      4.1.1  INTRODUCTION
+
+         The User Datagram Protocol UDP [UDP:1] offers only a minimal
+         transport service -- non-guaranteed datagram delivery -- and
+         gives applications direct access to the datagram service of the
+         IP layer.  UDP is used by applications that do not require the
+         level of service of TCP or that wish to use communications
+         services (e.g., multicast or broadcast delivery) not available
+         from TCP.
+
+         UDP is almost a null protocol; the only services it provides
+         over IP are checksumming of data and multiplexing by port
+         number.  Therefore, an application program running over UDP
+         must deal directly with end-to-end communication problems that
+         a connection-oriented protocol would have handled -- e.g.,
+         retransmission for reliable delivery, packetization and
+         reassembly, flow control, congestion avoidance, etc., when
+         these are required.  The fairly complex coupling between IP and
+         TCP will be mirrored in the coupling between UDP and many
+         applications using UDP.
+
+      4.1.2  PROTOCOL WALK-THROUGH
+
+         There are no known errors in the specification of UDP.
+
+      4.1.3  SPECIFIC ISSUES
+
+         4.1.3.1  Ports
+
+            UDP well-known ports follow the same rules as TCP well-known
+            ports; see Section 4.2.2.1 below.
+
+            If a datagram arrives addressed to a UDP port for which
+            there is no pending LISTEN call, UDP SHOULD send an ICMP
+            Port Unreachable message.
+
+         4.1.3.2  IP Options
+
+            UDP MUST pass any IP option that it receives from the IP
+            layer transparently to the application layer.
+
+            An application MUST be able to specify IP options to be sent
+            in its UDP datagrams, and UDP MUST pass these options to the
+            IP layer.
+         
+            DISCUSSION:
+                 At present, the only options that need be passed
+                 through UDP are Source Route, Record Route, and Time
+                 Stamp.  However, new options may be defined in the
+                 future, and UDP need not and should not make any
+                 assumptions about the format or content of options it
+                 passes to or from the application; an exception to this
+                 might be an IP-layer security option.
+
+                 An application based on UDP will need to obtain a
+                 source route from a request datagram and supply a
+                 reversed route for sending the corresponding reply.
+
+         4.1.3.3  ICMP Messages
+
+            UDP MUST pass to the application layer all ICMP error
+            messages that it receives from the IP layer.  Conceptually
+            at least, this may be accomplished with an upcall to the
+            ERROR_REPORT routine (see Section 4.2.4.1).
+
+            DISCUSSION:
+                 Note that ICMP error messages resulting from sending a
+                 UDP datagram are received asynchronously.  A UDP-based
+                 application that wants to receive ICMP error messages
+                 is responsible for maintaining the state necessary to
+                 demultiplex these messages when they arrive; for
+                 example, the application may keep a pending receive
+                 operation for this purpose.  The application is also
+                 responsible to avoid confusion from a delayed ICMP
+                 error message resulting from an earlier use of the same
+                 port(s).
+
+4.1.3.4  UDP Checksums
+
+            A host MUST implement the facility to generate and validate
+            UDP checksums.  An application MAY optionally be able to
+            control whether a UDP checksum will be generated, but it
+            MUST default to checksumming on.
+
+            If a UDP datagram is received with a checksum that is non-
+            zero and invalid, UDP MUST silently discard the datagram.
+            An application MAY optionally be able to control whether UDP
+            datagrams without checksums should be discarded or passed to
+            the application.
+
+            DISCUSSION:
+                 Some applications that normally run only across local
+                 area networks have chosen to turn off UDP checksums for
+                 efficiency.  As a result, numerous cases of undetected
+                 errors have been reported.  The advisability of ever
+                 turning off UDP checksumming is very controversial.
+
+            IMPLEMENTATION:
+                 There is a common implementation error in UDP
+                 checksums.  Unlike the TCP checksum, the UDP checksum
+                 is optional; the value zero is transmitted in the
+                 checksum field of a UDP header to indicate the absence
+                 of a checksum.  If the transmitter really calculates a
+                 UDP checksum of zero, it must transmit the checksum as
+                 all 1's (65535).  No special action is required at the
+                 receiver, since zero and 65535 are equivalent in 1's
+                 complement arithmetic.
+
+         4.1.3.5  UDP Multihoming
+
+            When a UDP datagram is received, its specific-destination
+            address MUST be passed up to the application layer.
+
+            An application program MUST be able to specify the IP source
+            address to be used for sending a UDP datagram or to leave it
+            unspecified (in which case the networking software will
+            choose an appropriate source address).  There SHOULD be a
+            way to communicate the chosen source address up to the
+            application layer (e.g, so that the application can later
+            receive a reply datagram only from the corresponding
+            interface).
+
+            DISCUSSION:
+                 A request/response application that uses UDP should use
+                 a source address for the response that is the same as
+                 the specific destination address of the request.  See
+                 the "General Issues" section of [INTRO:1].
+
+         4.1.3.6  Invalid Addresses
+
+            A UDP datagram received with an invalid IP source address
+            (e.g., a broadcast or multicast address) must be discarded
+            by UDP or by the IP layer (see Section 3.2.1.3).
+
+            When a host sends a UDP datagram, the source address MUST be
+            (one of) the IP address(es) of the host.
+
+      4.1.4  UDP/APPLICATION LAYER INTERFACE
+
+         The application interface to UDP MUST provide the full services
+         of the IP/transport interface described in Section 3.4 of this
+         document.  Thus, an application using UDP needs the functions
+         of the GET_SRCADDR(), GET_MAXSIZES(), ADVISE_DELIVPROB(), and
+         RECV_ICMP() calls described in Section 3.4.  For example,
+         GET_MAXSIZES() can be used to learn the effective maximum UDP
+         maximum datagram size for a particular {interface,remote
+         host,TOS} triplet.
+
+         An application-layer program MUST be able to set the TTL and
+         TOS values as well as IP options for sending a UDP datagram,
+         and these values must be passed transparently to the IP layer.
+         UDP MAY pass the received TOS up to the application layer.
+
+          4.1.5  UDP REQUIREMENTS SUMMARY
+
+
+                                                 |        | | | |S| |
+                                                 |        | | | |H| |F
+                                                 |        | | | |O|M|o
+                                                 |        | |S| |U|U|o
+                                                 |        | |H| |L|S|t
+                                                 |        |M|O| |D|T|n
+                                                 |        |U|U|M| | |o
+                                                 |        |S|L|A|N|N|t
+                                                 |        |T|D|Y|O|O|t
+FEATURE                                          |SECTION | | | |T|T|e
+-------------------------------------------------|--------|-|-|-|-|-|--
+                                                 |        | | | | | |
+    UDP                                          |        | | | | | |
+-------------------------------------------------|--------|-|-|-|-|-|--
+                                                 |        | | | | | |
+UDP send Port Unreachable                        |4.1.3.1 | |x| | | |
+                                                 |        | | | | | |
+IP Options in UDP                                |        | | | | | |
+ - Pass rcv'd IP options to applic layer         |4.1.3.2 |x| | | | |
+ - Applic layer can specify IP options in Send   |4.1.3.2 |x| | | | |
+ - UDP passes IP options down to IP layer        |4.1.3.2 |x| | | | |
+                                                 |        | | | | | |
+Pass ICMP msgs up to applic layer                |4.1.3.3 |x| | | | |
+                                                 |        | | | | | |
+UDP checksums:                                   |        | | | | | |
+ - Able to generate/check checksum               |4.1.3.4 |x| | | | |
+ - Silently discard bad checksum                 |4.1.3.4 |x| | | | |
+ - Sender Option to not generate checksum        |4.1.3.4 | | |x| | |
+   - Default is to checksum                      |4.1.3.4 |x| | | | |
+ - Receiver Option to require checksum           |4.1.3.4 | | |x| | |
+                                                 |        | | | | | |
+UDP Multihoming                                  |        | | | | | |
+ - Pass spec-dest addr to application            |4.1.3.5 |x| | | | |
+
+
+
+Internet Engineering Task Force                                [Page 80]
+
+RFC1122                  TRANSPORT LAYER -- UDP             October 1989
+
+
+ - Applic layer can specify Local IP addr        |4.1.3.5 |x| | | | |
+ - Applic layer specify wild Local IP addr       |4.1.3.5 |x| | | | |
+ - Applic layer notified of Local IP addr used   |4.1.3.5 | |x| | | |
+                                                 |        | | | | | |
+Bad IP src addr silently discarded by UDP/IP     |4.1.3.6 |x| | | | |
+Only send valid IP source address                |4.1.3.6 |x| | | | |
+UDP Application Interface Services               |        | | | | | |
+Full IP interface of 3.4 for application         |4.1.4   |x| | | | |
+ - Able to spec TTL, TOS, IP opts when send dg   |4.1.4   |x| | | | |
+ - Pass received TOS up to applic layer          |4.1.4   | | |x| | |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Internet Engineering Task Force                                [Page 81]
+
+RFC1122                  TRANSPORT LAYER -- TCP             October 1989
+
+
+   4.2  TRANSMISSION CONTROL PROTOCOL -- TCP
+
+      4.2.1  INTRODUCTION
+
+         The Transmission Control Protocol TCP [TCP:1] is the primary
+         virtual-circuit transport protocol for the Internet suite.  TCP
+         provides reliable, in-sequence delivery of a full-duplex stream
+         of octets (8-bit bytes).  TCP is used by those applications
+         needing reliable, connection-oriented transport service, e.g.,
+         mail (SMTP), file transfer (FTP), and virtual terminal service
+         (Telnet); requirements for these application-layer protocols
+         are described in [INTRO:1].
+
+      4.2.2  PROTOCOL WALK-THROUGH
+
+         4.2.2.1  Well-Known Ports: RFC-793 Section 2.7
+
+            DISCUSSION:
+                 TCP reserves port numbers in the range 0-255 for
+                 "well-known" ports, used to access services that are
+                 standardized across the Internet.  The remainder of the
+                 port space can be freely allocated to application
+                 processes.  Current well-known port definitions are
+                 listed in the RFC entitled "Assigned Numbers"
+                 [INTRO:6].  A prerequisite for defining a new well-
+                 known port is an RFC documenting the proposed service
+                 in enough detail to allow new implementations.
+
+                 Some systems extend this notion by adding a third
+                 subdivision of the TCP port space: reserved ports,
+                 which are generally used for operating-system-specific
+                 services.  For example, reserved ports might fall
+                 between 256 and some system-dependent upper limit.
+                 Some systems further choose to protect well-known and
+                 reserved ports by permitting only privileged users to
+                 open TCP connections with those port values.  This is
+                 perfectly reasonable as long as the host does not
+                 assume that all hosts protect their low-numbered ports
+                 in this manner.
+
+         4.2.2.2  Use of Push: RFC-793 Section 2.8
+
+            When an application issues a series of SEND calls without
+            setting the PUSH flag, the TCP MAY aggregate the data
+            internally without sending it.  Similarly, when a series of
+            segments is received without the PSH bit, a TCP MAY queue
+            the data internally without passing it to the receiving
+            application.
+
+
+
+Internet Engineering Task Force                                [Page 82]
+
+RFC1122                  TRANSPORT LAYER -- TCP             October 1989
+
+
+            The PSH bit is not a record marker and is independent of
+            segment boundaries.  The transmitter SHOULD collapse
+            successive PSH bits when it packetizes data, to send the
+            largest possible segment.
+
+            A TCP MAY implement PUSH flags on SEND calls.  If PUSH flags
+            are not implemented, then the sending TCP: (1) must not
+            buffer data indefinitely, and (2) MUST set the PSH bit in
+            the last buffered segment (i.e., when there is no more
+            queued data to be sent).
+
+            The discussion in RFC-793 on pages 48, 50, and 74
+            erroneously implies that a received PSH flag must be passed
+            to the application layer.  Passing a received PSH flag to
+            the application layer is now OPTIONAL.
+
+            An application program is logically required to set the PUSH
+            flag in a SEND call whenever it needs to force delivery of
+            the data to avoid a communication deadlock.  However, a TCP
+            SHOULD send a maximum-sized segment whenever possible, to
+            improve performance (see Section 4.2.3.4).
+
+            DISCUSSION:
+                 When the PUSH flag is not implemented on SEND calls,
+                 i.e., when the application/TCP interface uses a pure
+                 streaming model, responsibility for aggregating any
+                 tiny data fragments to form reasonable sized segments
+                 is partially borne by the application layer.
+
+                 Generally, an interactive application protocol must set
+                 the PUSH flag at least in the last SEND call in each
+                 command or response sequence.  A bulk transfer protocol
+                 like FTP should set the PUSH flag on the last segment
+                 of a file or when necessary to prevent buffer deadlock.
+
+                 At the receiver, the PSH bit forces buffered data to be
+                 delivered to the application (even if less than a full
+                 buffer has been received). Conversely, the lack of a
+                 PSH bit can be used to avoid unnecessary wakeup calls
+                 to the application process; this can be an important
+                 performance optimization for large timesharing hosts.
+                 Passing the PSH bit to the receiving application allows
+                 an analogous optimization within the application.
+
+         4.2.2.3  Window Size: RFC-793 Section 3.1
+
+            The window size MUST be treated as an unsigned number, or
+            else large window sizes will appear like negative windows
+
+
+
+Internet Engineering Task Force                                [Page 83]
+
+RFC1122                  TRANSPORT LAYER -- TCP             October 1989
+
+
+            and TCP will not work.  It is RECOMMENDED that
+            implementations reserve 32-bit fields for the send and
+            receive window sizes in the connection record and do all
+            window computations with 32 bits.
+
+            DISCUSSION:
+                 It is known that the window field in the TCP header is
+                 too small for high-speed, long-delay paths.
+                 Experimental TCP options have been defined to extend
+                 the window size; see for example [TCP:11].  In
+                 anticipation of the adoption of such an extension, TCP
+                 implementors should treat windows as 32 bits.
+
+         4.2.2.4  Urgent Pointer: RFC-793 Section 3.1
+
+            The second sentence is in error: the urgent pointer points
+            to the sequence number of the LAST octet (not LAST+1) in a
+            sequence of urgent data.  The description on page 56 (last
+            sentence) is correct.
+
+            A TCP MUST support a sequence of urgent data of any length.
+
+            A TCP MUST inform the application layer asynchronously
+            whenever it receives an Urgent pointer and there was
+            previously no pending urgent data, or whenever the Urgent
+            pointer advances in the data stream.  There MUST be a way
+            for the application to learn how much urgent data remains to
+            be read from the connection, or at least to determine
+            whether or not more urgent data remains to be read.
+
+            DISCUSSION:
+                 Although the Urgent mechanism may be used for any
+                 application, it is normally used to send "interrupt"-
+                 type commands to a Telnet program (see "Using Telnet
+                 Synch Sequence" section in [INTRO:1]).
+
+                 The asynchronous or "out-of-band" notification will
+                 allow the application to go into "urgent mode", reading
+                 data from the TCP connection.  This allows control
+                 commands to be sent to an application whose normal
+                 input buffers are full of unprocessed data.
+
+            IMPLEMENTATION:
+                 The generic ERROR-REPORT() upcall described in Section
+                 4.2.4.1 is a possible mechanism for informing the
+                 application of the arrival of urgent data.
+
+
+
+
+
+Internet Engineering Task Force                                [Page 84]
+
+RFC1122                  TRANSPORT LAYER -- TCP             October 1989
+
+
+         4.2.2.5  TCP Options: RFC-793 Section 3.1
+
+            A TCP MUST be able to receive a TCP option in any segment.
+            A TCP MUST ignore without error any TCP option it does not
+            implement, assuming that the option has a length field (all
+            TCP options defined in the future will have length fields).
+            TCP MUST be prepared to handle an illegal option length
+            (e.g., zero) without crashing; a suggested procedure is to
+            reset the connection and log the reason.
+
+         4.2.2.6  Maximum Segment Size Option: RFC-793 Section 3.1
+
+            TCP MUST implement both sending and receiving the Maximum
+            Segment Size option [TCP:4].
+
+            TCP SHOULD send an MSS (Maximum Segment Size) option in
+            every SYN segment when its receive MSS differs from the
+            default 536, and MAY send it always.

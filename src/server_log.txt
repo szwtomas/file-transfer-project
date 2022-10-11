@@ -1,2 +1,5 @@
-[2022-10-04 18:04:52] [INFO] Starting Stop and Wait Server (UDP)
-[2022-10-04 18:04:54] [INFO] Incoming download request for 'fotito2.jpg
+[2022-10-11 16:32:40] [INFO] Starting Go Back N Server (UDP)
+[2022-10-11 16:32:51] [INFO] Incoming request to upload file: prueba_2.txt
+[2022-10-11 16:32:52] [INFO] Finished uploading file 'prueba_2.txt'
+[2022-10-11 16:34:46] [INFO] Incoming request to upload file: prueba_2.txt
+[2022-10-11 16:34:52] [INFO] Finished uploading file 'prueba_2.txt'

@@ -1,0 +1,3 @@
+[2022-10-11 16:34:46.776] [INFO] Starting file transfer with Go Back N (UDP)
+[2022-10-11 16:34:48.883] [INFO] Starting uploading...
+[2022-10-11 16:34:52.193] [INFO] Finished uploading file: prueba_2.txt

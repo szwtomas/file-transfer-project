@@ -5,5 +5,4 @@
 # 2. python3 upload-file.py -h
 
 cd src
-python3 upload-file.py saw -n fotito2.jpg
-
+python3 upload-file.py saw -n 5mb_test_client.txt
